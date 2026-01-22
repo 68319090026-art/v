@@ -46,7 +46,7 @@
         .btn-off { background: #e74c3c; }
 
         /* ตาราง */
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 14px;}
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px;}
         th, td { padding: 8px; border-bottom: 1px solid #444; }
         th { color: #aaa; }
     </style>
@@ -73,10 +73,10 @@
             <button class="btn-off" onclick="setSystem(false)">ปิดระบบ</button>
         </div>
 
-        <h3>📅 บันทึกข้อมูล (Realtime)</h3>
+        <h3>📅 บันทึกข้อมูลรายวัน</h3>
         <div style="max-height: 200px; overflow-y: auto;">
             <table id="logTable">
-                <thead><tr><th>เวลา</th><th>อุณหภูมิ</th></tr></thead>
+                <thead><tr><th>วัน-เวลา</th><th>อุณหภูมิ</th></tr></thead>
                 <tbody id="logBody"></tbody>
             </table>
         </div>
@@ -84,12 +84,12 @@
 
     <script>
         // ========================================================
-        // 👇 แก้ลิงก์ Firebase ของคุณที่นี่ (อย่าลืม / ปิดท้าย)
+        // 👇 ใส่ลิงก์ Firebase ของคุณที่นี่ (อย่าลืม / ปิดท้าย)
         const DB_URL = "https://viewvi-3e5ef-default-rtdb.firebaseio.com/";
         // ========================================================
 
         let chart;
-        let lastLoggedTime = ""; // กันข้อมูลซ้ำ
+        let lastLoggedTime = ""; 
 
         // ตั้งค่ากราฟ Chart.js
         function initChart() {
@@ -110,15 +110,9 @@
                 options: {
                     scales: { y: { beginAtZero: true, suggestedMax: 50 } },
                     plugins: { legend: { display: false } },
-                    animation: false // ปิด Animation กราฟเพื่อความลื่นไหล
+                    animation: false 
                 }
             });
-        }
-
-        // ฟังก์ชันดึงเวลาปัจจุบันจาก Browser (แก้ปัญหากราฟไม่ขึ้น)
-        function getCurrentTime() {
-            const now = new Date();
-            return now.toLocaleTimeString('th-TH'); // แสดงเวลาแบบไทย
         }
 
         // ฟังก์ชันอ่านข้อมูล
@@ -145,7 +139,7 @@
                 document.body.className = "bg-off";
                 document.getElementById("status").innerText = "🔴 ระบบปิด";
                 document.getElementById("status").style.color = "#e74c3c";
-                return; // ถ้าระบบปิด ไม่ต้องอัปเดตกราฟ
+                return; 
             }
 
             // 2. แสดงตัวเลข
@@ -162,26 +156,33 @@
             else if (temp < 35) fill.style.background = "linear-gradient(to top, #f39c12, #e67e22)";
             else fill.style.background = "linear-gradient(to top, #e74c3c, #c0392b)";
 
-            // 4. อัปเดตกราฟและตาราง (ใช้เวลาจากเครื่องคอมพิวเตอร์แทน)
-            // ทำงานทุกครั้งที่อ่านค่าได้ เพื่อให้กราฟวิ่งตลอด
-            let nowTime = getCurrentTime();
-            
-            // เพิ่มลงกราฟ
-            if(chart.data.labels.length > 10) { // โชว์แค่ 10 จุดล่าสุด
+            // 4. จัดการเรื่องเวลา (เพิ่มวันที่)
+            const now = new Date();
+            // เวลาอย่างเดียว (สำหรับกราฟ)
+            const timeOnly = now.toLocaleTimeString('th-TH');
+            // วันที่ + เวลา (สำหรับตารางบันทึก)
+            const fullDateTime = now.toLocaleString('th-TH', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+
+            // เพิ่มลงกราฟ (ใช้แค่เวลา เพื่อไม่ให้รก)
+            if(chart.data.labels.length > 10) { 
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
             }
-            chart.data.labels.push(nowTime);
+            chart.data.labels.push(timeOnly);
             chart.data.datasets[0].data.push(temp);
             chart.update();
 
-            // เพิ่มลงตาราง (เฉพาะเมื่อเวลาเปลี่ยนวินาที เพื่อกันตารางรกเกินไป)
-            if (nowTime !== lastLoggedTime) {
-                lastLoggedTime = nowTime;
+            // เพิ่มลงตาราง (ใช้วันที่ + เวลาเต็มๆ)
+            if (fullDateTime !== lastLoggedTime) {
+                lastLoggedTime = fullDateTime;
                 let logBody = document.getElementById("logBody");
-                let row = `<tr><td>${nowTime}</td><td>${temp.toFixed(1)} °C</td></tr>`;
+                // สร้างแถวใหม่ที่มีวันที่ครบถ้วน
+                let row = `<tr><td>${fullDateTime}</td><td>${temp.toFixed(1)} °C</td></tr>`;
                 logBody.insertAdjacentHTML('afterbegin', row);
-                // ลบแถวเก่าถ้าเกิน 20 บรรทัด
+                
                 if(logBody.children.length > 20) logBody.lastChild.remove();
             }
         }
@@ -194,9 +195,8 @@
             fetchData();
         }
 
-        // เริ่มทำงาน
         initChart();
-        setInterval(fetchData, 3000); // อัปเดตทุก 3 วินาที
+        setInterval(fetchData, 3000); 
         fetchData();
     </script>
 </body>
