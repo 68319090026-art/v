@@ -3,91 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temperature IoT (Firebase)</title>
+    <title>Temperature IoT System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* (ใช้ Style เดิมจากอันที่แล้วได้เลยครับ เพื่อความสวยงาม) */
-        body { font-family: Tahoma; text-align: center; color: white; background: #222; padding: 20px; }
-        .card { background: #333; max-width: 400px; margin: auto; padding: 20px; border-radius: 20px; }
-        .temp { font-size: 50px; font-weight: bold; margin: 20px 0; }
-        button { padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; color: white; margin: 5px;}
-        .on { background: #2ecc71; }
-        .off { background: #e74c3c; }
+        body {
+            margin: 0; font-family: 'Tahoma', sans-serif;
+            color: white; text-align: center;
+            background-size: cover; background-position: center;
+            transition: background-image 0.8s ease;
+            min-height: 100vh;
+        }
+        /* พื้นหลัง: ทะเล (ON) / กลางคืน (OFF) */
+        .bg-on { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e'); }
+        .bg-off { background-image: url('https://images.unsplash.com/photo-1472552944129-a03ccbd80499'); }
+
+        .card {
+            background: rgba(0, 0, 0, 0.75);
+            max-width: 450px; margin: 30px auto;
+            padding: 25px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+        .temp-display { font-size: 56px; font-weight: bold; margin: 10px 0; text-shadow: 2px 2px 4px #000; }
+        
+        /* === หลอดปรอท === */
+        .tube-container {
+            width: 40px; height: 200px;
+            background: #222; margin: 20px auto;
+            border-radius: 20px; border: 4px solid #555;
+            position: relative; overflow: hidden;
+        }
+        .tube-fill {
+            width: 100%; height: 0%;
+            position: absolute; bottom: 0; left: 0;
+            transition: height 0.5s, background 0.5s;
+        }
+        /* Animation น้ำไหล */
+        .tube-fill::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            animation: flow 1.5s infinite linear;
+        }
+        @keyframes flow { from {transform: translateY(100%);} to {transform: translateY(-100%);} }
+
+        /* ปุ่มกด */
+        button {
+            padding: 12px 30px; font-size: 16px; border: none; border-radius: 50px;
+            cursor: pointer; margin: 10px; transition: transform 0.1s; color: white;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-on { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .btn-off { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+        /* ตาราง */
+        table { width: 100%; font-size: 14px; margin-top: 15px; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #444; }
+        th { color: #aaa; }
     </style>
 </head>
-<body>
-    <div class="card">
-        <h2>🌡 ระบบวัดอุณหภูมิ (Online)</h2>
-        <div id="status">กำลังเชื่อมต่อ...</div>
-        <div class="temp" id="temp">-- °C</div>
-        
-        <canvas id="chart"></canvas>
+<body class="bg-off">
 
-        <br>
-        <button class="on" onclick="setSystem(true)">เปิดระบบ</button>
-        <button class="off" onclick="setSystem(false)">ปิดระบบ</button>
+    <div class="card">
+        <h2>🌡 ระบบวัดอุณหภูมิ IoT</h2>
+        <div style="color: #ccc;">📍 พิกัด: อ.เมืองเพชรบูรณ์</div>
+        <div id="status" style="margin-top:5px; font-weight:bold; color:orange;">Connecting...</div>
+
+        <div class="tube-container">
+            <div id="tubeFill" class="tube-fill"></div>
+        </div>
+
+        <div class="temp-display" id="tempText">-- °C</div>
+
+        <div style="background: rgba(255,255,255,0.1); border-radius:10px; padding:10px;">
+            <canvas id="myChart" height="150"></canvas>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn-on" onclick="setSystem(true)">🟢 เปิดระบบ</button>
+            <button class="btn-off" onclick="setSystem(false)">🔴 ปิดระบบ</button>
+        </div>
+
+        <h3>📅 บันทึกข้อมูลรายวัน</h3>
+        <table id="logTable">
+            <thead><tr><th>วัน-เวลา</th><th>อุณหภูมิ</th></tr></thead>
+            <tbody id="logBody"></tbody>
+        </table>
     </div>
 
     <script>
-        // ==========================================
-        // 👇 ใส่ URL ของ Firebase คุณตรงนี้ (ต้องมี / ลงท้าย)
+        // 👇 แก้ URL ให้ตรงกับของคุณ (ต้องมี https:// และลงท้ายด้วย /)
         const DB_URL = "https://viewvi-3e5ef-default-rtdb.firebaseio.com/";
-        // ==========================================
 
-        let labels = [], temps = [];
-        const ctx = document.getElementById('chart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{ label: 'Temperature', data: temps, borderColor: '#4fc3f7', tension: 0.4 }]
-            }
-        });
+        let chart;
+        let lastTime = "";
+
+        // เริ่มต้นกราฟ
+        function initChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ 
+                    label: 'อุณหภูมิ (°C)', data: [], 
+                    borderColor: '#00d2ff', backgroundColor: 'rgba(0, 210, 255, 0.2)',
+                    fill: true, tension: 0.4 
+                }]},
+                options: {
+                    scales: { y: { beginAtZero: true, suggestedMax: 50 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
 
         // ฟังก์ชันอ่านข้อมูล
-        async function loadData() {
+        async function fetchData() {
             try {
-                // อ่านข้อมูล JSON จาก Firebase โดยตรง
                 let res = await fetch(DB_URL + ".json");
                 let data = await res.json();
-
-                if (data) {
-                    // อัปเดตอุณหภูมิ
-                    document.getElementById("temp").innerText = (data.temperature || 0) + " °C";
-                    
-                    // อัปเดตสถานะ
-                    let statusText = document.getElementById("status");
-                    if (data.systemOn) {
-                        statusText.innerText = "🟢 ระบบทำงานอยู่";
-                        statusText.style.color = "#2ecc71";
-                    } else {
-                        statusText.innerText = "🔴 ระบบถูกปิด";
-                        statusText.style.color = "#e74c3c";
-                    }
-
-                    // อัปเดตกราฟ
-                    let timeStr = new Date().toLocaleTimeString();
-                    if (labels.length > 10) { labels.shift(); temps.shift(); }
-                    labels.push(timeStr);
-                    temps.push(data.temperature);
-                    chart.update();
+                
+                if(data) {
+                    updateUI(data);
                 }
-            } catch (err) {
-                console.error(err);
+            } catch(e) { console.log("Error:", e); }
+        }
+
+        function updateUI(data) {
+            // 1. อัปเดตสถานะและพื้นหลัง
+            const statusEl = document.getElementById("status");
+            if (data.systemOn) {
+                document.body.className = "bg-on";
+                statusEl.innerText = "🟢 ระบบทำงานปกติ";
+                statusEl.style.color = "#2ecc71";
+            } else {
+                document.body.className = "bg-off";
+                statusEl.innerText = "🔴 ระบบปิดการทำงาน";
+                statusEl.style.color = "#e74c3c";
+                // ถ้าระบบปิด ให้หยุดแสดงค่าใหม่
+                return; 
+            }
+
+            // 2. อัปเดตตัวเลข
+            let temp = data.temperature || 0;
+            document.getElementById("tempText").innerText = temp.toFixed(1) + " °C";
+
+            // 3. อัปเดตหลอดปรอท
+            let fill = document.getElementById("tubeFill");
+            let height = Math.min((temp / 50) * 100, 100); // Max 50c = 100%
+            fill.style.height = height + "%";
+
+            // เปลี่ยนสีตามความร้อน
+            if(temp < 30) fill.style.background = "linear-gradient(to top, #2ecc71, #27ae60)";
+            else if(temp < 35) fill.style.background = "linear-gradient(to top, #f39c12, #e67e22)";
+            else fill.style.background = "linear-gradient(to top, #e74c3c, #c0392b)";
+
+            // 4. อัปเดตกราฟและ Log (เมื่อเวลาเปลี่ยน)
+            let timeStr = data.timeString || "-";
+            if (timeStr !== lastTime && timeStr !== "-") {
+                lastTime = timeStr;
+                
+                // ลงกราฟ (เอาแค่เวลา HH:MM:SS)
+                let timeOnly = timeStr.split(" ")[1];
+                if(chart.data.labels.length > 10) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+                chart.data.labels.push(timeOnly);
+                chart.data.datasets[0].data.push(temp);
+                chart.update();
+
+                // ลงตาราง Log
+                let logBody = document.getElementById("logBody");
+                let row = `<tr><td>${timeStr}</td><td>${temp.toFixed(1)} °C</td></tr>`;
+                logBody.insertAdjacentHTML('afterbegin', row);
+                if(logBody.children.length > 10) logBody.lastChild.remove();
             }
         }
 
-        // ฟังก์ชันสั่งงาน (ส่งค่าไป Firebase)
+        // สั่งเปิด/ปิดระบบ
         async function setSystem(isOn) {
             await fetch(DB_URL + "systemOn.json", {
-                method: "PUT",
-                body: JSON.stringify(isOn)
+                method: "PUT", body: JSON.stringify(isOn)
             });
-            loadData(); // โหลดค่าใหม่ทันที
+            fetchData(); // โหลดค่าใหม่ทันที
         }
 
-        setInterval(loadData, 3000); // อ่านค่าทุก 3 วินาที
-        loadData();
+        initChart();
+        setInterval(fetchData, 2000); // อ่านค่าทุก 2 วินาที
+        fetchData();
     </script>
 </body>
 </html>
