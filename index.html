@@ -10,71 +10,91 @@
             margin: 0; font-family: 'Tahoma', sans-serif;
             color: white; text-align: center;
             background-size: cover; background-position: center;
-            transition: background-image 0.5s ease;
+            /* เพิ่มสีพื้นหลังดำรองรับตอนรูปโหลดไม่ทัน */
+            background-color: #111;
+            transition: background-image 0.8s ease;
             min-height: 100vh;
         }
-        /* พื้นหลัง */
         .bg-on { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e'); }
         .bg-off { background-image: url('https://images.unsplash.com/photo-1472552944129-a03ccbd80499'); }
 
         .card {
-            background: rgba(0, 0, 0, 0.9); /* พื้นหลังดำเข้มขึ้นเพื่อให้แสงเด่น */
-            max-width: 500px; margin: 20px auto;
-            padding: 25px; border-radius: 25px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.85);
+            max-width: 500px; margin: 30px auto;
+            padding: 30px; border-radius: 30px;
+            /* เพิ่มเงาให้ Card ดูลอยออกมา */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .temp-display { font-size: 60px; font-weight: bold; margin: 15px 0; text-shadow: 0 0 10px rgba(255,255,255,0.5);}
+        .temp-display { font-size: 64px; font-weight: 800; margin: 20px 0; text-shadow: 0 0 20px rgba(255,255,255,0.6);}
         
-        /* === หลอดปรอท (ดีไซน์ใหม่) === */
+        /* === หลอดปรอท (Ultimate Glow Design) === */
         .tube-container {
-            width: 50px; height: 220px; 
-            background: #000; /* พื้นหลังหลอดสีดำสนิท */
-            margin: 15px auto;
-            border-radius: 30px; 
-            border: 3px solid #444; 
+            width: 60px; height: 240px; 
+            background: #080808; /* พื้นหลังดำสนิท */
+            margin: 20px auto;
+            border-radius: 35px; 
+            border: 4px solid #222; /* ขอบโลหะเข้มๆ */
             position: relative; overflow: hidden;
-            box-shadow: inset 0 0 20px #000; /* เงาลึกด้านใน */
+            /* เงาลึก + แสงสะท้อนขอบแก้ว */
+            box-shadow: inset 0 0 30px #000, 0 5px 15px rgba(0,0,0,0.5);
         }
+        /* เพิ่มเส้นสะท้อนแสงบนหลอดแก้ว */
+        .tube-container::before {
+            content: ''; position: absolute;
+            top: 10%; left: 15%; width: 15%; height: 40%;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px; z-index: 2; filter: blur(2px);
+        }
+
         .tube-fill {
             width: 100%; height: 0%; position: absolute; bottom: 0; left: 0;
-            /* เพิ่ม transition ให้แสงเปลี่ยนสีสมูท */
-            transition: height 0.5s ease-out, background 0.5s ease, box-shadow 0.5s ease;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            /* เริ่มต้นยังไม่มีแสง */
+            box-shadow: none;
         }
         
-        /* เอฟเฟกต์ฟองอากาศลอย */
+        /* ฟองอากาศ (ปรับให้เนียนขึ้น) */
         .tube-fill::after {
             content: ''; position: absolute; width: 100%; height: 100%;
-            background: center / contain repeat-y url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'><circle cx='25' cy='25' r='5' fill='rgba(255,255,255,0.3)'/></svg>");
-            animation: bubbles 2s linear infinite; opacity: 0.6;
+            background: center / contain repeat-y url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'><circle cx='25' cy='25' r='4' fill='rgba(255,255,255,0.5)'/></svg>");
+            animation: bubbles 4s linear infinite; opacity: 0.7; mix-blend-mode: overlay;
         }
-        @keyframes bubbles { from { background-position: 0 0; } to { background-position: 0 -50px; } }
+        @keyframes bubbles { from { background-position: 0 0; } to { background-position: 0 -100px; } }
 
         /* ปุ่ม */
         button {
-            padding: 12px 30px; font-size: 16px; border: none; border-radius: 50px;
-            cursor: pointer; margin: 8px; color: white; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: transform 0.1s;
+            padding: 14px 35px; font-size: 16px; border: none; border-radius: 50px;
+            cursor: pointer; margin: 10px; color: white; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
         }
-        button:active { transform: scale(0.95); }
-        .btn-on { background: linear-gradient(to bottom, #2ecc71, #27ae60); }
-        .btn-off { background: linear-gradient(to bottom, #e74c3c, #c0392b); }
+        button:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(0,0,0,0.4);}
+        .btn-on { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .btn-on:hover { box-shadow: 0 0 20px #2ecc71; }
+        .btn-off { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-off:hover { box-shadow: 0 0 20px #e74c3c; }
 
         /* ตาราง */
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px;}
-        th, td { padding: 10px; border-bottom: 1px solid #444; text-align: left;}
-        th { color: #aaa; font-weight: normal;}
-        td:nth-child(2) { font-weight: bold; color: #4fc3f7; text-align: right;}
+        table { width: 100%; margin-top: 20px; border-collapse: separate; border-spacing: 0 5px; font-size: 13px;}
+        th { color: #aaa; font-weight: normal; padding: 10px;}
+        td { padding: 12px 15px; background: rgba(255,255,255,0.05); }
+        tr:first-child td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+        tr:first-child td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+        td:nth-child(2) { font-weight: bold; color: #fff; text-align: right; text-shadow: 0 0 5px rgba(255,255,255,0.5);}
     </style>
 </head>
 <body class="bg-off">
 
     <div class="card">
-        <h2>🌡 ระบบวัดอุณหภูมิ IoT</h2>
-        <div style="color:#ccc">📍 อ.เมืองเพชรบูรณ์</div>
-        <div id="status" style="font-weight:bold; color:orange; margin-top:10px;">Connecting...</div>
+        <h2 style="margin-bottom: 5px;">🌡 ระบบวัดอุณหภูมิ IoT</h2>
+        <div style="color:#888; font-size: 14px;">📍 อ.เมืองเพชรบูรณ์</div>
+        
+        <div id="statusBox" style="background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; display: inline-block; margin-top: 15px;">
+            <span id="statusIndicator" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: orange; margin-right: 5px; box-shadow: 0 0 5px orange;"></span>
+            <span id="statusText" style="font-weight:bold; font-size: 14px;">Connecting...</span>
+        </div>
 
         <div class="tube-container">
             <div id="tubeFill" class="tube-fill"></div>
@@ -82,19 +102,18 @@
 
         <div class="temp-display" id="tempText">-- °C</div>
 
-        <div style="background: rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
-            <canvas id="myChart" height="140"></canvas>
+        <div style="background: rgba(0,0,0,0.3); padding:15px; border-radius:20px; border: 1px solid rgba(255,255,255,0.05);">
+            <canvas id="myChart" height="130"></canvas>
         </div>
 
-        <div style="margin-top:20px;">
-            <button class="btn-on" onclick="setSystem(true)">🟢 เปิดระบบ</button>
-            <button class="btn-off" onclick="setSystem(false)">🔴 ปิดระบบ</button>
+        <div style="margin-top:25px;">
+            <button class="btn-on" onclick="setSystem(true)">เปิดระบบ</button>
+            <button class="btn-off" onclick="setSystem(false)">ปิดระบบ</button>
         </div>
 
-        <h3>📅 บันทึกข้อมูล (ทุก 1 นาที)</h3>
-        <div style="max-height: 250px; overflow-y: auto; border-top: 2px solid #444;">
+        <h3 style="margin-top: 30px; text-align: left; padding-left: 10px;">📅 บันทึกล่าสุด (ทุก 1 นาที)</h3>
+        <div style="max-height: 220px; overflow-y: auto; padding-right: 5px;">
             <table id="logTable">
-                <thead><tr><th>วัน-เวลา</th><th style="text-align: right;">อุณหภูมิ</th></tr></thead>
                 <tbody id="logBody"></tbody>
             </table>
         </div>
@@ -109,23 +128,28 @@
         let chart;
         let lastLogMinute = -1; 
 
-        // เริ่มต้นกราฟ
         function initChart() {
             const ctx = document.getElementById('myChart').getContext('2d');
+            // สร้าง Gradient ให้กราฟดูสวยขึ้น
+            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(0, 210, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 210, 255, 0)');
+
             chart = new Chart(ctx, {
                 type: 'line',
                 data: { labels: [], datasets: [{ 
-                    label: 'อุณหภูมิ (°C)', data: [], 
-                    borderColor: '#00d2ff', backgroundColor: 'rgba(0, 210, 255, 0.1)',
-                    fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2
+                    label: 'Temp', data: [], 
+                    borderColor: '#00d2ff', 
+                    backgroundColor: gradient,
+                    fill: true, tension: 0.4, pointRadius: 0, borderWidth: 3
                 }]},
                 options: {
                     scales: { 
-                        y: { beginAtZero: true, suggestedMax: 50, grid: { color: '#333'} },
-                        x: { grid: { display: false } }
+                        y: { beginAtZero: true, suggestedMax: 50, grid: { color: 'rgba(255,255,255,0.1)'}, ticks: { color: '#888'} },
+                        x: { grid: { display: false }, ticks: { display: false} }
                     },
                     plugins: { legend: { display: false } },
-                    animation: false 
+                    animation: false, responsive: true
                 }
             });
         }
@@ -139,16 +163,21 @@
         }
 
         function updateUI(data) {
+            const statusText = document.getElementById("statusText");
+            const statusInd = document.getElementById("statusIndicator");
+            const fill = document.getElementById("tubeFill");
+            const tempText = document.getElementById("tempText");
+
             // 1. ตรวจสอบสถานะระบบ
             if (!data.systemOn) {
                 // === ปิดระบบ ===
                 document.body.className = "bg-off";
-                document.getElementById("status").innerText = "🔴 ระบบปิดการทำงาน";
-                document.getElementById("status").style.color = "#ff5252";
-                document.getElementById("tempText").innerText = "-- °C";
+                statusText.innerText = "ระบบปิดการทำงาน"; statusText.style.color = "#ff5252";
+                statusInd.style.background = "#ff5252"; statusInd.style.boxShadow = "0 0 10px #ff5252";
+                tempText.innerText = "-- °C";
+                tempText.style.textShadow = "none";
                 
-                // ปิดไฟหลอด (เอาแสงออก)
-                let fill = document.getElementById("tubeFill");
+                // ปิดไฟหลอด
                 fill.style.height = "0%";
                 fill.style.background = "none";
                 fill.style.boxShadow = "none";
@@ -157,45 +186,52 @@
 
             // === เปิดระบบ ===
             document.body.className = "bg-on";
-            document.getElementById("status").innerText = "🟢 ระบบทำงานปกติ";
-            document.getElementById("status").style.color = "#2ecc71";
+            statusText.innerText = "ระบบทำงานปกติ"; statusText.style.color = "#2ecc71";
+            statusInd.style.background = "#2ecc71"; statusInd.style.boxShadow = "0 0 10px #2ecc71";
 
             let temp = parseFloat(data.temperature || 0);
-            document.getElementById("tempText").innerText = temp.toFixed(1) + " °C";
+            tempText.innerText = temp.toFixed(1) + " °C";
 
             // ปรับระดับหลอด
-            let fill = document.getElementById("tubeFill");
             let h = Math.min((temp / 50) * 100, 100);
             fill.style.height = h + "%";
 
-            // ========== กำหนดสีเรืองแสง (Glowing Colors) ==========
+            // ========== Ultimate Glowing Colors (จัดเต็มแสงฟุ้ง) ==========
+            let mainColor, glowColor;
             if (temp < 30) {
-                // 🟢 เย็น/ปกติ (เขียวเรืองแสง)
-                fill.style.background = "linear-gradient(to top, #2ecc71, #27ae60)";
-                // แสงเงา: เงาใน + เงานอก
-                fill.style.boxShadow = "0 0 20px #2ecc71, inset 0 0 10px #2ecc71";
-            
+                // 🟢 เขียว Neon
+                mainColor = "#00ff80"; glowColor = "#2ecc71";
             } else if (temp < 35) {
-                // 🟠 30-35 องศา (ส้มเรืองแสง)
-                fill.style.background = "linear-gradient(to top, #f39c12, #d35400)";
-                fill.style.boxShadow = "0 0 25px #f39c12, inset 0 0 15px #f39c12";
-            
+                // 🟠 ส้ม Neon
+                mainColor = "#ffaa00"; glowColor = "#f39c12";
             } else {
-                // 🔴 ร้อน (แดงเรืองแสงจัดๆ)
-                fill.style.background = "linear-gradient(to top, #ff3d00, #c0392b)";
-                fill.style.boxShadow = "0 0 40px #ff3d00, inset 0 0 20px #ff3d00";
+                // 🔴 แดง Neon (ร้อนแรง)
+                mainColor = "#ff0055"; glowColor = "#e74c3c";
             }
-            // ===================================================
+
+            // พื้นหลังแบบ Gradient สว่างตรงกลาง
+            fill.style.background = `linear-gradient(to right, ${glowColor}, ${mainColor}, ${glowColor})`;
+            
+            // เทคนิคซ้อนเงาหลายชั้น (Layered Shadows) เพื่อความฟุ้ง
+            fill.style.boxShadow = `
+                0 0 10px ${mainColor},       /* แสงชั้นในสุด สว่างจ้า */
+                0 0 30px ${glowColor},       /* แสงชั้นกลาง ฟุ้งออก */
+                0 0 60px ${glowColor},       /* แสงชั้นนอกสุด ฟุ้งไกล */
+                inset 0 0 15px rgba(255,255,255,0.8) /* ขอบขาวด้านในให้ดูมีมิติ */
+            `;
+            
+            // เพิ่มแสงให้ตัวเลขด้วย
+            tempText.style.textShadow = `0 0 20px ${mainColor}`;
+            // ==========================================================
 
             // กราฟและเวลา
             const now = new Date();
-            const timeOnly = now.toLocaleTimeString('th-TH'); 
             const currentMinute = now.getMinutes();
 
-            if(chart.data.labels.length > 20) { 
+            if(chart.data.labels.length > 30) { 
                 chart.data.labels.shift(); chart.data.datasets[0].data.shift();
             }
-            chart.data.labels.push(timeOnly);
+            chart.data.labels.push(""); // ไม่ต้องโชว์เวลาในกราฟแกน X
             chart.data.datasets[0].data.push(temp);
             chart.update();
 
@@ -203,12 +239,17 @@
             if (currentMinute !== lastLogMinute) {
                 lastLogMinute = currentMinute;
                 const fullDateTime = now.toLocaleString('th-TH', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    day: '2-digit', month: '2-digit',
                     hour: '2-digit', minute: '2-digit'
                 });
 
                 let logBody = document.getElementById("logBody");
-                let row = `<tr><td>${fullDateTime}</td><td>${temp.toFixed(1)} °C</td></tr>`;
+                // ตารางแบบใหม่ มีสีตามอุณหภูมิ
+                let rowColor = temp < 30 ? "#2ecc71" : (temp < 35 ? "#f39c12" : "#ff5252");
+                let row = `<tr>
+                    <td>${fullDateTime} น.</td>
+                    <td style="color: ${rowColor}; text-shadow: 0 0 5px ${rowColor};">${temp.toFixed(1)} °C</td>
+                </tr>`;
                 logBody.insertAdjacentHTML('afterbegin', row);
                 if(logBody.children.length > 60) logBody.lastChild.remove();
             }
