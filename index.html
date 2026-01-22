@@ -135,14 +135,12 @@
         }
 
         function updateUI(data) {
-            // 1. ตรวจสอบสถานะระบบก่อน
+            // 1. ตรวจสอบสถานะระบบ
             if (!data.systemOn) {
-                // === กรณีปิดระบบ ===
+                // กรณีปิดระบบ
                 document.body.className = "bg-off";
                 document.getElementById("status").innerText = "🔴 ระบบปิดการทำงาน";
                 document.getElementById("status").style.color = "#ff5252";
-                
-                // ล้างค่าหน้าจอให้ว่างเปล่า
                 document.getElementById("tempText").innerText = "-- °C";
                 
                 // ลดหลอดให้เหลือ 0
@@ -150,11 +148,10 @@
                 fill.style.height = "0%";
                 fill.style.background = "none";
                 fill.style.boxShadow = "none";
-                
-                return; // ⛔ จบการทำงานตรงนี้ ไม่ไปอัปเดตกราฟ
+                return;
             }
 
-            // === กรณีเปิดระบบ (ทำงานปกติ) ===
+            // กรณีเปิดระบบ
             document.body.className = "bg-on";
             document.getElementById("status").innerText = "🟢 ระบบทำงานปกติ";
             document.getElementById("status").style.color = "#2ecc71";
@@ -167,16 +164,21 @@
             let h = Math.min((temp / 50) * 100, 100);
             fill.style.height = h + "%";
 
+            // ========== เงื่อนไขสี (ที่แก้ไข) ==========
             if (temp < 30) {
+                // สีเขียว
                 fill.style.background = "linear-gradient(to top, #2ecc71, #27ae60)";
                 fill.style.boxShadow = "0 0 20px #2ecc71, inset 0 0 10px #2ecc71";
             } else if (temp < 35) {
-                fill.style.background = "linear-gradient(to top, #f39c12, #e67e22)";
+                // 🟠 30 องศาขึ้นไป = สีส้ม (Orange)
+                fill.style.background = "linear-gradient(to top, #f39c12, #d35400)";
                 fill.style.boxShadow = "0 0 25px #f39c12, inset 0 0 12px #f39c12";
             } else {
+                // สีแดง (ร้อนมาก เกิน 35)
                 fill.style.background = "linear-gradient(to top, #e74c3c, #c0392b)";
                 fill.style.boxShadow = "0 0 35px #e74c3c, inset 0 0 15px #e74c3c";
             }
+            // ======================================
 
             // จัดการเวลาและกราฟ
             const now = new Date();
