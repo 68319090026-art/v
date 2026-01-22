@@ -18,7 +18,7 @@
         .bg-off { background-image: url('https://images.unsplash.com/photo-1472552944129-a03ccbd80499'); }
 
         .card {
-            background: rgba(0, 0, 0, 0.85); /* ปรับให้มืดลงนิดนึงเพื่อให้แสงเด่นขึ้น */
+            background: rgba(0, 0, 0, 0.85);
             max-width: 500px; margin: 20px auto;
             padding: 25px; border-radius: 25px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.6);
@@ -27,22 +27,21 @@
         
         .temp-display { font-size: 60px; font-weight: bold; margin: 15px 0; text-shadow: 2px 2px 8px rgba(0,0,0,0.8);}
         
-        /* === หลอดปรอท (แก้ไขใหม่) === */
+        /* หลอดปรอท */
         .tube-container {
             width: 50px; height: 220px; 
-            background: #111; /* สีพื้นหลังหลอดมืดๆ */
+            background: #111; 
             margin: 15px auto;
             border-radius: 30px; 
-            border: 4px solid #333; /* ขอบหนาขึ้น */
+            border: 4px solid #333; 
             position: relative; overflow: hidden;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.9); /* เงาด้านในให้ดูมีมิติ */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
         }
         .tube-fill {
             width: 100%; height: 0%; position: absolute; bottom: 0; left: 0;
-            /* เพิ่ม transition ให้แสงเงาเปลี่ยนสีสมูทๆ */
             transition: height 0.5s ease-out, background 0.5s ease, box-shadow 0.5s ease;
         }
-        /* เพิ่มลูกเล่นฟองอากาศลอยขึ้นเบาๆ */
+        /* ฟองอากาศ */
         .tube-fill::after {
             content: ''; position: absolute; width: 100%; height: 100%;
             background: center / contain repeat-y url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'><circle cx='25' cy='25' r='5' fill='rgba(255,255,255,0.2)'/></svg>");
@@ -99,30 +98,23 @@
 
     <script>
         // ========================================================
-        // 👇 ใส่ลิงก์ Firebase ของคุณที่นี่ (อย่าลืม / ปิดท้าย)
+        // 👇 แก้ลิงก์ Firebase ของคุณที่นี่
         const DB_URL = "https://viewvi-3e5ef-default-rtdb.firebaseio.com/";
         // ========================================================
 
         let chart;
         let lastLogMinute = -1; 
 
-        // ตั้งค่ากราฟ Chart.js
+        // เริ่มต้นกราฟ
         function initChart() {
             const ctx = document.getElementById('myChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'line',
-                data: { 
-                    labels: [], 
-                    datasets: [{ 
-                        label: 'อุณหภูมิ (°C)', 
-                        data: [], 
-                        borderColor: '#00d2ff',
-                        backgroundColor: 'rgba(0, 210, 255, 0.15)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2
-                    }]
-                },
+                data: { labels: [], datasets: [{ 
+                    label: 'อุณหภูมิ (°C)', data: [], 
+                    borderColor: '#00d2ff', backgroundColor: 'rgba(0, 210, 255, 0.15)',
+                    fill: true, tension: 0.3, pointRadius: 2
+                }]},
                 options: {
                     scales: { 
                         y: { beginAtZero: true, suggestedMax: 50, grid: { color: '#333'} },
@@ -143,48 +135,54 @@
         }
 
         function updateUI(data) {
-            // 1. สถานะเปิด/ปิด
-            if (data.systemOn) {
-                document.body.className = "bg-on";
-                document.getElementById("status").innerText = "🟢 ระบบทำงานปกติ";
-                document.getElementById("status").style.color = "#2ecc71";
-            } else {
+            // 1. ตรวจสอบสถานะระบบก่อน
+            if (!data.systemOn) {
+                // === กรณีปิดระบบ ===
                 document.body.className = "bg-off";
                 document.getElementById("status").innerText = "🔴 ระบบปิดการทำงาน";
                 document.getElementById("status").style.color = "#ff5252";
-                return; 
+                
+                // ล้างค่าหน้าจอให้ว่างเปล่า
+                document.getElementById("tempText").innerText = "-- °C";
+                
+                // ลดหลอดให้เหลือ 0
+                let fill = document.getElementById("tubeFill");
+                fill.style.height = "0%";
+                fill.style.background = "none";
+                fill.style.boxShadow = "none";
+                
+                return; // ⛔ จบการทำงานตรงนี้ ไม่ไปอัปเดตกราฟ
             }
 
-            // 2. แสดงตัวเลข
+            // === กรณีเปิดระบบ (ทำงานปกติ) ===
+            document.body.className = "bg-on";
+            document.getElementById("status").innerText = "🟢 ระบบทำงานปกติ";
+            document.getElementById("status").style.color = "#2ecc71";
+
             let temp = parseFloat(data.temperature || 0);
             document.getElementById("tempText").innerText = temp.toFixed(1) + " °C";
 
-            // 3. ปรับหลอดปรอท + เอฟเฟกต์เรืองแสง (Glow)
+            // ปรับหลอด + เรืองแสง
             let fill = document.getElementById("tubeFill");
             let h = Math.min((temp / 50) * 100, 100);
             fill.style.height = h + "%";
 
-            // เปลี่ยนสีและเพิ่มเงาเรืองแสง (box-shadow) ตามอุณหภูมิ
             if (temp < 30) {
-                // สีเขียว
                 fill.style.background = "linear-gradient(to top, #2ecc71, #27ae60)";
                 fill.style.boxShadow = "0 0 20px #2ecc71, inset 0 0 10px #2ecc71";
             } else if (temp < 35) {
-                // สีส้ม
                 fill.style.background = "linear-gradient(to top, #f39c12, #e67e22)";
                 fill.style.boxShadow = "0 0 25px #f39c12, inset 0 0 12px #f39c12";
             } else {
-                // สีแดง (ร้อนมาก เรืองแสงเยอะหน่อย)
                 fill.style.background = "linear-gradient(to top, #e74c3c, #c0392b)";
                 fill.style.boxShadow = "0 0 35px #e74c3c, inset 0 0 15px #e74c3c";
             }
 
-            // 4. จัดการเวลาและตาราง
+            // จัดการเวลาและกราฟ
             const now = new Date();
             const timeOnly = now.toLocaleTimeString('th-TH'); 
             const currentMinute = now.getMinutes();
 
-            // กราฟ
             if(chart.data.labels.length > 20) { 
                 chart.data.labels.shift(); chart.data.datasets[0].data.shift();
             }
@@ -192,10 +190,9 @@
             chart.data.datasets[0].data.push(temp);
             chart.update();
 
-            // ตารางบันทึก (ทุก 1 นาที)
+            // บันทึกตาราง (ทุก 1 นาที)
             if (currentMinute !== lastLogMinute) {
                 lastLogMinute = currentMinute;
-                // สร้างรูปแบบ "วัน/เดือน/ปี เวลา"
                 const fullDateTime = now.toLocaleString('th-TH', {
                     day: '2-digit', month: '2-digit', year: 'numeric',
                     hour: '2-digit', minute: '2-digit'
