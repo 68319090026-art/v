@@ -13,42 +13,57 @@
             transition: background-image 0.5s ease;
             min-height: 100vh;
         }
-        /* พื้นหลังเปลี่ยนตามสถานะ */
-        .bg-on { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e'); } /* ทะเล */
-        .bg-off { background-image: url('https://images.unsplash.com/photo-1472552944129-a03ccbd80499'); } /* กลางคืน */
+        /* พื้นหลัง */
+        .bg-on { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e'); }
+        .bg-off { background-image: url('https://images.unsplash.com/photo-1472552944129-a03ccbd80499'); }
 
         .card {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85); /* ปรับให้มืดลงนิดนึงเพื่อให้แสงเด่นขึ้น */
             max-width: 500px; margin: 20px auto;
-            padding: 20px; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+            padding: 25px; border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
         }
         
-        .temp-display { font-size: 60px; font-weight: bold; margin: 10px 0; text-shadow: 2px 2px 4px black;}
+        .temp-display { font-size: 60px; font-weight: bold; margin: 15px 0; text-shadow: 2px 2px 8px rgba(0,0,0,0.8);}
         
-        /* หลอดปรอท */
+        /* === หลอดปรอท (แก้ไขใหม่) === */
         .tube-container {
-            width: 50px; height: 200px; background: #222; margin: 10px auto;
-            border-radius: 25px; border: 3px solid #555; position: relative; overflow: hidden;
+            width: 50px; height: 220px; 
+            background: #111; /* สีพื้นหลังหลอดมืดๆ */
+            margin: 15px auto;
+            border-radius: 30px; 
+            border: 4px solid #333; /* ขอบหนาขึ้น */
+            position: relative; overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9); /* เงาด้านในให้ดูมีมิติ */
         }
         .tube-fill {
             width: 100%; height: 0%; position: absolute; bottom: 0; left: 0;
-            transition: height 0.5s, background 0.5s;
+            /* เพิ่ม transition ให้แสงเงาเปลี่ยนสีสมูทๆ */
+            transition: height 0.5s ease-out, background 0.5s ease, box-shadow 0.5s ease;
         }
+        /* เพิ่มลูกเล่นฟองอากาศลอยขึ้นเบาๆ */
+        .tube-fill::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            background: center / contain repeat-y url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'><circle cx='25' cy='25' r='5' fill='rgba(255,255,255,0.2)'/></svg>");
+            animation: bubbles 3s linear infinite; opacity: 0.5;
+        }
+        @keyframes bubbles { from { background-position: 0 0; } to { background-position: 0 -50px; } }
 
         /* ปุ่ม */
         button {
-            padding: 10px 25px; font-size: 16px; border: none; border-radius: 50px;
-            cursor: pointer; margin: 5px; color: white;
+            padding: 12px 30px; font-size: 16px; border: none; border-radius: 50px;
+            cursor: pointer; margin: 8px; color: white; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .btn-on { background: #2ecc71; }
-        .btn-off { background: #e74c3c; }
+        .btn-on { background: linear-gradient(to bottom, #2ecc71, #27ae60); }
+        .btn-off { background: linear-gradient(to bottom, #e74c3c, #c0392b); }
 
         /* ตาราง */
         table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px;}
-        th, td { padding: 8px; border-bottom: 1px solid #444; }
-        th { color: #aaa; }
+        th, td { padding: 10px; border-bottom: 1px solid #444; text-align: left;}
+        th { color: #aaa; font-weight: normal;}
+        td:nth-child(2) { font-weight: bold; color: #4fc3f7; text-align: right;}
     </style>
 </head>
 <body class="bg-off">
@@ -64,19 +79,19 @@
 
         <div class="temp-display" id="tempText">-- °C</div>
 
-        <div style="background: rgba(255,255,255,0.1); padding:10px; border-radius:10px;">
-            <canvas id="myChart" height="150"></canvas>
+        <div style="background: rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
+            <canvas id="myChart" height="140"></canvas>
         </div>
 
-        <div style="margin-top:15px;">
-            <button class="btn-on" onclick="setSystem(true)">เปิดระบบ</button>
-            <button class="btn-off" onclick="setSystem(false)">ปิดระบบ</button>
+        <div style="margin-top:20px;">
+            <button class="btn-on" onclick="setSystem(true)">🟢 เปิดระบบ</button>
+            <button class="btn-off" onclick="setSystem(false)">🔴 ปิดระบบ</button>
         </div>
 
-        <h3>📅 บันทึกข้อมูลรายวัน</h3>
-        <div style="max-height: 200px; overflow-y: auto;">
+        <h3>📅 บันทึกข้อมูล (ทุก 1 นาที)</h3>
+        <div style="max-height: 250px; overflow-y: auto; border-top: 2px solid #444;">
             <table id="logTable">
-                <thead><tr><th>วัน-เวลา</th><th>อุณหภูมิ</th></tr></thead>
+                <thead><tr><th>วัน-เวลา</th><th style="text-align: right;">อุณหภูมิ</th></tr></thead>
                 <tbody id="logBody"></tbody>
             </table>
         </div>
@@ -89,7 +104,7 @@
         // ========================================================
 
         let chart;
-        let lastLoggedTime = ""; 
+        let lastLogMinute = -1; 
 
         // ตั้งค่ากราฟ Chart.js
         function initChart() {
@@ -102,43 +117,41 @@
                         label: 'อุณหภูมิ (°C)', 
                         data: [], 
                         borderColor: '#00d2ff',
-                        backgroundColor: 'rgba(0, 210, 255, 0.2)',
+                        backgroundColor: 'rgba(0, 210, 255, 0.15)',
                         fill: true,
-                        tension: 0.3
+                        tension: 0.3,
+                        pointRadius: 2
                     }]
                 },
                 options: {
-                    scales: { y: { beginAtZero: true, suggestedMax: 50 } },
+                    scales: { 
+                        y: { beginAtZero: true, suggestedMax: 50, grid: { color: '#333'} },
+                        x: { grid: { display: false } }
+                    },
                     plugins: { legend: { display: false } },
                     animation: false 
                 }
             });
         }
 
-        // ฟังก์ชันอ่านข้อมูล
         async function fetchData() {
             try {
                 let res = await fetch(DB_URL + ".json");
                 let data = await res.json();
-
-                if (data) {
-                    updateUI(data);
-                }
-            } catch (error) {
-                console.error("Error:", error);
-            }
+                if (data) updateUI(data);
+            } catch (error) { console.error("Error:", error); }
         }
 
         function updateUI(data) {
             // 1. สถานะเปิด/ปิด
             if (data.systemOn) {
                 document.body.className = "bg-on";
-                document.getElementById("status").innerText = "🟢 ระบบทำงาน";
+                document.getElementById("status").innerText = "🟢 ระบบทำงานปกติ";
                 document.getElementById("status").style.color = "#2ecc71";
             } else {
                 document.body.className = "bg-off";
-                document.getElementById("status").innerText = "🔴 ระบบปิด";
-                document.getElementById("status").style.color = "#e74c3c";
+                document.getElementById("status").innerText = "🔴 ระบบปิดการทำงาน";
+                document.getElementById("status").style.color = "#ff5252";
                 return; 
             }
 
@@ -146,48 +159,55 @@
             let temp = parseFloat(data.temperature || 0);
             document.getElementById("tempText").innerText = temp.toFixed(1) + " °C";
 
-            // 3. ปรับหลอดปรอท
+            // 3. ปรับหลอดปรอท + เอฟเฟกต์เรืองแสง (Glow)
             let fill = document.getElementById("tubeFill");
             let h = Math.min((temp / 50) * 100, 100);
             fill.style.height = h + "%";
 
-            // เปลี่ยนสีหลอด
-            if (temp < 30) fill.style.background = "linear-gradient(to top, #2ecc71, #27ae60)";
-            else if (temp < 35) fill.style.background = "linear-gradient(to top, #f39c12, #e67e22)";
-            else fill.style.background = "linear-gradient(to top, #e74c3c, #c0392b)";
+            // เปลี่ยนสีและเพิ่มเงาเรืองแสง (box-shadow) ตามอุณหภูมิ
+            if (temp < 30) {
+                // สีเขียว
+                fill.style.background = "linear-gradient(to top, #2ecc71, #27ae60)";
+                fill.style.boxShadow = "0 0 20px #2ecc71, inset 0 0 10px #2ecc71";
+            } else if (temp < 35) {
+                // สีส้ม
+                fill.style.background = "linear-gradient(to top, #f39c12, #e67e22)";
+                fill.style.boxShadow = "0 0 25px #f39c12, inset 0 0 12px #f39c12";
+            } else {
+                // สีแดง (ร้อนมาก เรืองแสงเยอะหน่อย)
+                fill.style.background = "linear-gradient(to top, #e74c3c, #c0392b)";
+                fill.style.boxShadow = "0 0 35px #e74c3c, inset 0 0 15px #e74c3c";
+            }
 
-            // 4. จัดการเรื่องเวลา (เพิ่มวันที่)
+            // 4. จัดการเวลาและตาราง
             const now = new Date();
-            // เวลาอย่างเดียว (สำหรับกราฟ)
-            const timeOnly = now.toLocaleTimeString('th-TH');
-            // วันที่ + เวลา (สำหรับตารางบันทึก)
-            const fullDateTime = now.toLocaleString('th-TH', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
+            const timeOnly = now.toLocaleTimeString('th-TH'); 
+            const currentMinute = now.getMinutes();
 
-            // เพิ่มลงกราฟ (ใช้แค่เวลา เพื่อไม่ให้รก)
-            if(chart.data.labels.length > 10) { 
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
+            // กราฟ
+            if(chart.data.labels.length > 20) { 
+                chart.data.labels.shift(); chart.data.datasets[0].data.shift();
             }
             chart.data.labels.push(timeOnly);
             chart.data.datasets[0].data.push(temp);
             chart.update();
 
-            // เพิ่มลงตาราง (ใช้วันที่ + เวลาเต็มๆ)
-            if (fullDateTime !== lastLoggedTime) {
-                lastLoggedTime = fullDateTime;
+            // ตารางบันทึก (ทุก 1 นาที)
+            if (currentMinute !== lastLogMinute) {
+                lastLogMinute = currentMinute;
+                // สร้างรูปแบบ "วัน/เดือน/ปี เวลา"
+                const fullDateTime = now.toLocaleString('th-TH', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+
                 let logBody = document.getElementById("logBody");
-                // สร้างแถวใหม่ที่มีวันที่ครบถ้วน
                 let row = `<tr><td>${fullDateTime}</td><td>${temp.toFixed(1)} °C</td></tr>`;
                 logBody.insertAdjacentHTML('afterbegin', row);
-                
-                if(logBody.children.length > 20) logBody.lastChild.remove();
+                if(logBody.children.length > 60) logBody.lastChild.remove();
             }
         }
 
-        // ปุ่มสั่งงาน
         async function setSystem(isOn) {
             await fetch(DB_URL + "systemOn.json", {
                 method: "PUT", body: JSON.stringify(isOn)
