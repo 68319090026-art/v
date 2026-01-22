@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature IoT (Firebase)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* (ใช้ Style เดิมจากอันที่แล้วได้เลยครับ เพื่อความสวยงาม) */
+        body { font-family: Tahoma; text-align: center; color: white; background: #222; padding: 20px; }
+        .card { background: #333; max-width: 400px; margin: auto; padding: 20px; border-radius: 20px; }
+        .temp { font-size: 50px; font-weight: bold; margin: 20px 0; }
+        button { padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; color: white; margin: 5px;}
+        .on { background: #2ecc71; }
+        .off { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🌡 ระบบวัดอุณหภูมิ (Online)</h2>
+        <div id="status">กำลังเชื่อมต่อ...</div>
+        <div class="temp" id="temp">-- °C</div>
+        
+        <canvas id="chart"></canvas>
+
+        <br>
+        <button class="on" onclick="setSystem(true)">เปิดระบบ</button>
+        <button class="off" onclick="setSystem(false)">ปิดระบบ</button>
+    </div>
+
+    <script>
+        // ==========================================
+        // 👇 ใส่ URL ของ Firebase คุณตรงนี้ (ต้องมี / ลงท้าย)
+        const DB_URL = "https://viewvi-3e5ef-default-rtdb.firebaseio.com/";
+        // ==========================================
+
+        let labels = [], temps = [];
+        const ctx = document.getElementById('chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Temperature', data: temps, borderColor: '#4fc3f7', tension: 0.4 }]
+            }
+        });
+
+        // ฟังก์ชันอ่านข้อมูล
+        async function loadData() {
+            try {
+                // อ่านข้อมูล JSON จาก Firebase โดยตรง
+                let res = await fetch(DB_URL + ".json");
+                let data = await res.json();
+
+                if (data) {
+                    // อัปเดตอุณหภูมิ
+                    document.getElementById("temp").innerText = (data.temperature || 0) + " °C";
+                    
+                    // อัปเดตสถานะ
+                    let statusText = document.getElementById("status");
+                    if (data.systemOn) {
+                        statusText.innerText = "🟢 ระบบทำงานอยู่";
+                        statusText.style.color = "#2ecc71";
+                    } else {
+                        statusText.innerText = "🔴 ระบบถูกปิด";
+                        statusText.style.color = "#e74c3c";
+                    }
+
+                    // อัปเดตกราฟ
+                    let timeStr = new Date().toLocaleTimeString();
+                    if (labels.length > 10) { labels.shift(); temps.shift(); }
+                    labels.push(timeStr);
+                    temps.push(data.temperature);
+                    chart.update();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // ฟังก์ชันสั่งงาน (ส่งค่าไป Firebase)
+        async function setSystem(isOn) {
+            await fetch(DB_URL + "systemOn.json", {
+                method: "PUT",
+                body: JSON.stringify(isOn)
+            });
+            loadData(); // โหลดค่าใหม่ทันที
+        }
+
+        setInterval(loadData, 3000); // อ่านค่าทุก 3 วินาที
+        loadData();
+    </script>
+</body>
+</html>
