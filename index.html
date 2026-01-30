@@ -7,15 +7,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; text-align: center; padding: 20px; color: #333; }
-        h1 { color: #1a73e8; margin-bottom: 30px; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; width: 180px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #1a73e8; }
-        .value { font-size: 2rem; font-weight: bold; margin: 10px 0; color: #1a73e8; }
-        .unit { font-size: 1rem; color: #666; }
-        .status-warn { color: #d93025; animation: blink 1s infinite; }
-        .status-ok { color: #1e8e3e; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        body { font-family: 'Kanit', sans-serif; background: #f4f7f6; text-align: center; padding: 20px; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .value { font-size: 2.2rem; font-weight: bold; color: #0288d1; margin: 5px 0; }
+        .unit { color: #999; font-size: 0.9rem; }
+        .status-warn { color: #e53935; font-weight: bold; }
+        .status-ok { color: #43a047; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,44 +30,37 @@
             <span class="unit">%</span>
         </div>
         <div class="card">
-            <h3>ความชื้นดิน</h3>
+            <h3>ความชื้นในดิน</h3>
             <div id="soil" class="value">--</div>
             <span class="unit">%</span>
         </div>
-        <div class="card" id="security-card">
-            <h3>ความปลอดภัย</h3>
-            <div id="security" class="value" style="font-size: 1.2rem;">รอข้อมูล...</div>
+        <div class="card">
+            <h3>การตรวจจับวัตถุ</h3>
+            <div id="security" class="value" style="font-size: 1.2rem;">--</div>
         </div>
     </div>
 
     <script>
-        // --- ค่า Config จาก Firebase ของคุณ ---
+        // ใช้ลิงก์ของคุณที่ถูกต้องจากรูป
         const firebaseConfig = {
             databaseURL: "https://viewvi-3e5ef-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ดึงข้อมูลจาก Path "/Home" ให้ตรงกับโค้ด Arduino
+        // ดึงข้อมูลจาก Path "/Home" ให้ตรงกับ Arduino
         db.ref("Home").on("value", (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // อุณหภูมิ
+                // แก้ให้ตรงกับชื่อที่ Arduino ส่งไป (Temperature, Humidity, Soil, Security)
                 document.getElementById("temp").innerText = data.Temperature ? data.Temperature.toFixed(1) : "--";
-                // ความชื้นอากาศ
                 document.getElementById("hum").innerText = data.Humidity ? data.Humidity.toFixed(1) : "--";
-                // ความชื้นดิน
                 document.getElementById("soil").innerText = data.Soil !== undefined ? data.Soil : "--";
                 
-                // ตรวจจับวัตถุ (Security)
-                const secVal = document.getElementById("security");
-                if (data.Security === 1) {
-                    secVal.innerText = "⚠️ พบวัตถุ!";
-                    secVal.className = "value status-warn";
-                } else {
-                    secVal.innerText = "✅ ปกติ";
-                    secVal.className = "value status-ok";
-                }
+                const secText = data.Security === 1 ? "⚠️ พบวัตถุ!" : "✅ ปกติ";
+                const secDiv = document.getElementById("security");
+                secDiv.innerText = secText;
+                secDiv.className = data.Security === 1 ? "value status-warn" : "value status-ok";
             }
         });
     </script>
