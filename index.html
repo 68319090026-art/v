@@ -7,13 +7,15 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Kanit', sans-serif; background: #eceff1; text-align: center; padding: 20px; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
-        .card { background: white; padding: 25px; border-radius: 15px; width: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .value { font-size: 2.5rem; font-weight: bold; color: #0288d1; margin: 10px 0; }
-        .unit { color: #757575; }
-        .status-on { color: #4caf50; font-weight: bold; }
-        .status-off { color: #f44336; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; text-align: center; padding: 20px; color: #333; }
+        h1 { color: #1a73e8; margin-bottom: 30px; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; width: 180px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #1a73e8; }
+        .value { font-size: 2rem; font-weight: bold; margin: 10px 0; color: #1a73e8; }
+        .unit { font-size: 1rem; color: #666; }
+        .status-warn { color: #d93025; animation: blink 1s infinite; }
+        .status-ok { color: #1e8e3e; }
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
@@ -25,41 +27,49 @@
             <span class="unit">°C</span>
         </div>
         <div class="card">
-            <h3>ความชื้นในอากาศ</h3>
+            <h3>ความชื้นอากาศ</h3>
             <div id="hum" class="value">--</div>
             <span class="unit">%</span>
         </div>
         <div class="card">
-            <h3>ความชื้นในดิน</h3>
+            <h3>ความชื้นดิน</h3>
             <div id="soil" class="value">--</div>
             <span class="unit">%</span>
         </div>
-        <div class="card">
-            <h3>การตรวจจับวัตถุ</h3>
-            <div id="security" class="value" style="font-size: 1.5rem;">--</div>
+        <div class="card" id="security-card">
+            <h3>ความปลอดภัย</h3>
+            <div id="security" class="value" style="font-size: 1.2rem;">รอข้อมูล...</div>
         </div>
     </div>
 
     <script>
-        // --- ใส่ค่าจาก Firebase ของคุณที่นี่ ---
+        // --- ค่า Config จาก Firebase ของคุณ ---
         const firebaseConfig = {
             databaseURL: "https://viewvi-3e5ef-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ดึงข้อมูลจาก Path "/Home" ที่เราเขียนใน Arduino
+        // ดึงข้อมูลจาก Path "/Home" ให้ตรงกับโค้ด Arduino
         db.ref("Home").on("value", (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                document.getElementById("temp").innerText = data.Temperature.toFixed(1);
-                document.getElementById("hum").innerText = data.Humidity.toFixed(1);
-                document.getElementById("soil").innerText = data.Soil;
+                // อุณหภูมิ
+                document.getElementById("temp").innerText = data.Temperature ? data.Temperature.toFixed(1) : "--";
+                // ความชื้นอากาศ
+                document.getElementById("hum").innerText = data.Humidity ? data.Humidity.toFixed(1) : "--";
+                // ความชื้นดิน
+                document.getElementById("soil").innerText = data.Soil !== undefined ? data.Soil : "--";
                 
-                const securityText = data.Security === 1 ? "⚠️ พบวัตถุ!" : "✅ ปกติ";
-                const securityDiv = document.getElementById("security");
-                securityDiv.innerText = securityText;
-                securityDiv.className = data.Security === 1 ? "value status-off" : "value status-on";
+                // ตรวจจับวัตถุ (Security)
+                const secVal = document.getElementById("security");
+                if (data.Security === 1) {
+                    secVal.innerText = "⚠️ พบวัตถุ!";
+                    secVal.className = "value status-warn";
+                } else {
+                    secVal.innerText = "✅ ปกติ";
+                    secVal.className = "value status-ok";
+                }
             }
         });
     </script>
