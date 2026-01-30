@@ -6,14 +6,14 @@
     <title>Viewvi Smart Home</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background: #f4f7f6; text-align: center; padding: 20px; }
+        body { font-family: 'Kanit', sans-serif; background: #f0f4f8; text-align: center; padding: 20px; }
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .value { font-size: 2.2rem; font-weight: bold; color: #0288d1; margin: 5px 0; }
-        .unit { color: #999; font-size: 0.9rem; }
-        .status-warn { color: #e53935; font-weight: bold; }
-        .status-ok { color: #43a047; font-weight: bold; }
+        .card { background: white; padding: 20px; border-radius: 15px; width: 180px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .value { font-size: 2.5rem; font-weight: bold; color: #1a73e8; margin: 10px 0; }
+        .status-warn { color: #d93025; font-weight: bold; }
+        .status-ok { color: #1e8e3e; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -25,42 +25,39 @@
             <span class="unit">°C</span>
         </div>
         <div class="card">
-            <h3>ความชื้นอากาศ</h3>
-            <div id="hum" class="value">--</div>
-            <span class="unit">%</span>
-        </div>
-        <div class="card">
-            <h3>ความชื้นในดิน</h3>
-            <div id="soil" class="value">--</div>
-            <span class="unit">%</span>
-        </div>
-        <div class="card">
             <h3>การตรวจจับวัตถุ</h3>
-            <div id="security" class="value" style="font-size: 1.2rem;">--</div>
+            <div id="security" class="value" style="font-size: 1.5rem;">--</div>
         </div>
     </div>
 
     <script>
-        // ใช้ลิงก์ของคุณที่ถูกต้องจากรูป
+        // ใช้ค่า Config จากโปรเจกต์ของคุณ
         const firebaseConfig = {
             databaseURL: "https://viewvi-3e5ef-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ดึงข้อมูลจาก Path "/Home" ให้ตรงกับ Arduino
-        db.ref("Home").on("value", (snapshot) => {
+        // ดึงข้อมูลจาก Root (นอกสุด) ตามรูป image_80c06f.png
+        db.ref("/").on("value", (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // แก้ให้ตรงกับชื่อที่ Arduino ส่งไป (Temperature, Humidity, Soil, Security)
-                document.getElementById("temp").innerText = data.Temperature ? data.Temperature.toFixed(1) : "--";
-                document.getElementById("hum").innerText = data.Humidity ? data.Humidity.toFixed(1) : "--";
-                document.getElementById("soil").innerText = data.Soil !== undefined ? data.Soil : "--";
+                // 1. เช็คค่า temperature (t ตัวเล็กตามรูป Firebase ของคุณ)
+                if(data.temperature !== undefined) {
+                    document.getElementById("temp").innerText = data.temperature;
+                }
                 
-                const secText = data.Security === 1 ? "⚠️ พบวัตถุ!" : "✅ ปกติ";
+                // 2. เช็คค่า Security (S ตัวใหญ่ตามที่คุณพิมพ์ในโค้ด Arduino ล่าสุด)
                 const secDiv = document.getElementById("security");
-                secDiv.innerText = secText;
-                secDiv.className = data.Security === 1 ? "value status-warn" : "value status-ok";
+                if (data.Security !== undefined) {
+                    if (data.Security === 1) {
+                        secDiv.innerText = "⚠️ พบวัตถุ!";
+                        secDiv.className = "value status-warn";
+                    } else {
+                        secDiv.innerText = "✅ ปกติ";
+                        secDiv.className = "value status-ok";
+                    }
+                }
             }
         });
     </script>
