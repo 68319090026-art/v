@@ -3,81 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewvi Smart Home & Security</title>
+    <title>Viewvi Professional Smart Home</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
+        :root { --glow-color: #00d4ff; }
         body { 
             font-family: 'Kanit', sans-serif; 
-            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed; 
-            background-size: cover;
-            text-align: center; padding: 20px; color: #333; 
+            background: url('https://images.unsplash.com/photo-1505118380757-91f5f45d8de4?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; margin: 0; padding: 20px; color: #fff;
         }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 30px;
-            display: inline-block;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        .main-container {
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px);
+            border-radius: 40px; padding: 40px; max-width: 900px; margin: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 25px; }
-        .card { 
-            background: white; padding: 20px; border-radius: 20px; width: 180px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.3);
-        }
-        .value { font-size: 2.5rem; font-weight: bold; color: #0077b6; margin: 10px 0; }
-        .label { font-size: 1rem; color: #555; }
+        h1 { font-weight: 700; font-size: 2rem; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
         
-        /* LED & Buzzer UI */
-        .status-container { display: flex; justify-content: center; gap: 30px; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.5); border-radius: 20px; }
-        .led-box { text-align: center; }
-        .led {
-            width: 30px; height: 30px; border-radius: 50%; margin: 10px auto;
-            background-color: #333; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1); border-radius: 25px; padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s;
         }
-        .led-red.on { background-color: #ff4d4d; box-shadow: 0 0 15px #ff4d4d; }
-        .led-green.on { background-color: #4dff4d; box-shadow: 0 0 15px #4dff4d; }
-        .buzzer-icon { font-size: 2rem; }
+
+        /* หลอดอุณหภูมิ */
+        .temp-bar-container { background: #333; height: 150px; width: 30px; border-radius: 15px; margin: 10px auto; position: relative; overflow: hidden; border: 2px solid #555; }
+        #temp-fill { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #00d4ff, #ff4d4d); transition: height 1s ease-in-out; box-shadow: 0 0 15px var(--glow-color); }
+
+        .value { font-size: 2.5rem; font-weight: 700; margin: 10px 0; }
+        .label { font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; }
+
+        /* Security Box */
+        .sec-box { border: 2px solid #444; }
+        .status-tag { padding: 5px 15px; border-radius: 50px; font-weight: bold; margin-top: 10px; display: inline-block; }
+        .bg-ok { background: #1e8e3e; box-shadow: 0 0 15px #1e8e3e; }
+        .bg-alert { background: #d93025; box-shadow: 0 0 20px #d93025; animation: blink 1s infinite; }
+
+        /* LED & Buzzer Control */
+        .indicator-group { display: flex; justify-content: space-around; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .led-circle { width: 35px; height: 35px; border-radius: 50%; background: #222; margin: 10px auto; transition: 0.3s; border: 3px solid #444; }
+        .led-red.active { background: #ff4d4d; box-shadow: 0 0 20px #ff4d4d; }
+        .led-blue.active { background: #00d4ff; box-shadow: 0 0 20px #00d4ff; }
+        
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-<div class="glass-panel">
-    <h1>🌊 Viewvi Smart Home & Security Monitoring</h1>
+<div class="main-container">
+    <h1>🏠 Viewvi Smart Monitoring</h1>
     
-    <div class="container">
-        <div class="card">
-            <div class="label">🌡️ อุณหภูมิ</div>
-            <div id="temp" class="value">--</div>
-            <span>°C</span>
+    <div class="grid-layout">
+        <div class="glass-card">
+            <div class="label">Temperature</div>
+            <div class="temp-bar-container">
+                <div id="temp-fill" style="height: 0%;"></div>
+            </div>
+            <div class="value"><span id="temp-val">--</span>°C</div>
         </div>
-        <div class="card">
-            <div class="label">💧 ความชื้นอากาศ</div>
-            <div id="hum" class="value">--</div>
-            <span>%</span>
+
+        <div class="glass-card">
+            <div class="label">Humidity</div>
+            <div class="value" id="hum-val" style="color: #00d4ff;">--</div>
+            <div class="label">Soil Moisture</div>
+            <div class="value" id="soil-val" style="color: #66bb6a;">--</div>
         </div>
-        <div class="card">
-            <div class="label">🌱 ความชื้นดิน</div>
-            <div id="soil" class="value">--</div>
-            <span>%</span>
+
+        <div class="glass-card sec-box">
+            <div class="label">Object Detection</div>
+            <div id="sec-icon" style="font-size: 3rem; margin: 10px 0;">🛡️</div>
+            <div id="sec-status" class="status-tag bg-ok">รอข้อมูล...</div>
         </div>
     </div>
 
-    <div class="status-container">
-        <div class="led-box">
-            <div class="label">LED อุณหภูมิ</div>
-            <div id="ledTemp" class="led led-red"></div>
+    <div class="indicator-group">
+        <div>
+            <div class="label">System LED</div>
+            <div id="led-1" class="led-circle led-blue"></div>
+            <small>ไฟระบบ</small>
         </div>
-        <div class="led-box">
-            <div class="label">LED วัตถุ</div>
-            <div id="ledObj" class="led led-green"></div>
+        <div>
+            <div class="label">Alarm LED</div>
+            <div id="led-2" class="led-circle led-red"></div>
+            <small>ไฟเตือน</small>
         </div>
-        <div class="led-box">
-            <div class="label">ลำโพงบัซเซอร์</div>
-            <div id="buzzerStat" class="buzzer-icon">🔇</div>
-            <div id="buzzerTxt" style="font-size: 0.8rem;">ไม่มีเสียง</div>
+        <div>
+            <div class="label">Buzzer</div>
+            <div id="buzzer-icon" style="font-size: 1.5rem; margin-top: 10px;">🔇</div>
+            <small id="buzzer-text">เงียบ</small>
         </div>
     </div>
 </div>
@@ -90,31 +105,43 @@
     db.ref("/").on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
-            // อัปเดตค่าเซนเซอร์
-            document.getElementById("temp").innerText = data.temperature || "--";
-            document.getElementById("hum").innerText = data.Humidity || "--";
-            document.getElementById("soil").innerText = data.Soil || "--";
+            // 1. อัปเดตอุณหภูมิ (temperature t เล็ก)
+            const t = data.temperature || 0;
+            document.getElementById("temp-val").innerText = t;
+            const tempPercent = Math.min((t / 50) * 100, 100);
+            document.getElementById("temp-fill").style.height = tempPercent + "%";
+            
+            // 2. ความชื้นอากาศ (Humidity H ใหญ่)
+            document.getElementById("hum-val").innerText = data.Humidity + "%";
+            
+            // 3. ความชื้นดิน (Soil S ใหญ่)
+            document.getElementById("soil-val").innerText = data.Soil + "%";
 
-            // สถานะ LED อุณหภูมิ (จำลองตามเงื่อนไข > 30 องศา)
-            const ledT = document.getElementById("ledTemp");
-            if(data.temperature > 30) ledT.classList.add("on"); else ledT.classList.remove("on");
-
-            // สถานะความปลอดภัย & LED วัตถุ & Buzzer
-            const ledO = document.getElementById("ledObj");
-            const buzI = document.getElementById("buzzerStat");
-            const buzT = document.getElementById("buzzerTxt");
+            // 4. ตรวจจับวัตถุ (Security S ใหญ่)
+            const secStatus = document.getElementById("sec-status");
+            const secIcon = document.getElementById("sec-icon");
+            const ledRed = document.getElementById("led-2");
+            const buzIcon = document.getElementById("buzzer-icon");
+            const buzTxt = document.getElementById("buzzer-text");
 
             if (data.Security === 1) {
-                ledO.classList.add("on");
-                buzI.innerText = "🔊";
-                buzT.innerText = "กำลังมีเสียง!";
-                buzT.style.color = "red";
+                secStatus.innerText = "ไม่ปกติ - พบวัตถุ!";
+                secStatus.className = "status-tag bg-alert";
+                secIcon.innerText = "⚠️";
+                ledRed.classList.add("active");
+                buzIcon.innerText = "🔊";
+                buzTxt.innerText = "มีเสียง";
             } else {
-                ledO.classList.remove("on");
-                buzI.innerText = "🔇";
-                buzT.innerText = "ไม่มีเสียง";
-                buzT.style.color = "black";
+                secStatus.innerText = "ปกติ";
+                secStatus.className = "status-tag bg-ok";
+                secIcon.innerText = "🛡️";
+                ledRed.classList.remove("active");
+                buzIcon.innerText = "🔇";
+                buzTxt.innerText = "เงียบ";
             }
+            
+            // ไฟระบบ (ติดตลอดถ้าต่อสำเร็จ)
+            document.getElementById("led-1").classList.add("active");
         }
     });
 </script>
