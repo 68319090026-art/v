@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIEWVI PRO : MULTI-COLOR CONTROL</title>
+    <title>VIEWVI COMMAND : DYNAMIC MOTION</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-temp: #00f2ff;    /* ฟ้า */
-            --color-env: #00ff9d;     /* เขียว */
-            --color-sec: #ff003c;     /* แดง */
-            --bg: #05070a; --card: rgba(13, 17, 23, 0.95);
+            --color-temp: #00f2ff; --color-env: #00ff9d; --color-sec: #ff003c;
+            --bg: #05070a; --card: rgba(13, 17, 23, 0.9);
         }
 
         body {
@@ -20,140 +18,133 @@
             margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden;
         }
 
-        /* พื้นหลังเคลื่อนไหว */
+        /* พื้นหลัง Cyber Moving */
         .energy-wave {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 15% 85%, rgba(0, 242, 255, 0.1) 0%, transparent 35%),
-                        radial-gradient(circle at 85% 15%, rgba(255, 0, 60, 0.1) 0%, transparent 35%);
-            animation: waveMotion 20s ease-in-out infinite alternate; z-index: -2;
+            background: radial-gradient(circle at 10% 90%, rgba(0, 242, 255, 0.1), transparent 40%),
+                        radial-gradient(circle at 90% 10%, rgba(255, 0, 60, 0.1), transparent 40%);
+            z-index: -2; animation: bgPulse 10s ease-in-out infinite alternate;
         }
-        .grid-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px; z-index: -1; animation: gridMove 20s linear infinite;
-        }
-        @keyframes waveMotion { 0% { transform: scale(1); } 100% { transform: scale(1.2); } }
-        @keyframes gridMove { from { transform: translateY(0); } to { transform: translateY(50px); } }
+        @keyframes bgPulse { from { opacity: 0.5; } to { opacity: 1; } }
 
-        .dashboard { width: 95%; max-width: 1100px; padding: 30px; z-index: 1; }
+        .dashboard { width: 95%; max-width: 1100px; padding: 30px; }
 
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-left: 8px solid #fff; padding-left: 20px; }
-        h1 { font-family: 'Orbitron'; font-size: 2.8rem; margin: 0; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .time-box { text-align: right; font-family: 'Orbitron'; }
-        #date { color: #aaa; font-size: 1.1rem; }
-        #clock { font-size: 2.8rem; font-weight: 900; }
-
-        /* การ์ดแยกสี */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 25px; }
-        .card { 
-            background: var(--card); border-radius: 30px; padding: 35px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; overflow: hidden;
-            transition: 0.3s; border: 1px solid rgba(255,255,255,0.05);
-        }
+        /* การ์ดมีอนิเมชันลอย (Floating) */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 30px; }
         
-        /* ขอบเรืองแสงแยกตามคลาส */
-        .card.temp { border-bottom: 5px solid var(--color-temp); }
-        .card.env { border-bottom: 5px solid var(--color-env); }
-        .card.sec { border-bottom: 5px solid var(--color-sec); }
+        .card { 
+            background: var(--card); border-radius: 30px; padding: 35px; text-align: center;
+            position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            animation: float 6s ease-in-out infinite; /* อนิเมชันลอย */
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
 
-        .card-label { font-size: 1.6rem; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; }
-        .label-temp { color: var(--color-temp); text-shadow: 0 0 15px var(--color-temp); }
-        .label-env { color: var(--color-env); text-shadow: 0 0 15px var(--color-env); }
-        .label-sec { color: var(--color-sec); text-shadow: 0 0 15px var(--color-sec); }
+        /* เส้นขอบเรืองแสงวิ่งรอบกล่อง */
+        .card::after {
+            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, var(--accent-color));
+            animation: rotate 4s linear infinite; z-index: -1;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .card.temp { --accent-color: var(--color-temp); }
+        .card.env { --accent-color: var(--color-env); animation-delay: 1s; }
+        .card.sec { --accent-color: var(--color-sec); animation-delay: 2s; }
 
-        /* ค่าตัวเลข */
-        .big-value { font-family: 'Orbitron'; font-size: 4.5rem; font-weight: 900; margin: 10px 0; }
-        .sub-value { font-size: 2.2rem; font-weight: bold; }
+        .card-inner { background: var(--card); border-radius: 28px; padding: 10px; height: 100%; }
 
-        /* หลอดอุณหภูมิ */
-        .gauge-wrap { width: 65px; height: 180px; background: #000; border-radius: 35px; margin: 15px auto; position: relative; border: 3px solid #333; overflow: hidden; }
+        /* หลอดอุณหภูมิไล่เฉด เขียว-ส้ม-แดง */
+        .gauge-wrap { width: 60px; height: 200px; background: #000; border-radius: 30px; margin: 20px auto; border: 3px solid #333; position: relative; overflow: hidden; }
         #temp-bar { 
             position: absolute; bottom: 0; width: 100%; height: 0%; 
-            background: linear-gradient(to top, var(--color-temp), #fff);
-            transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); box-shadow: 0 0 30px var(--color-temp);
+            background: linear-gradient(to top, #00ff00 0%, #ffcc00 50%, #ff0000 100%);
+            transition: 1s cubic-bezier(0.17, 0.88, 0.32, 1.28);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
         }
 
-        /* ปุ่มไซเรนพอดีๆ */
+        .big-val { font-family: 'Orbitron'; font-size: 4.5rem; font-weight: 900; margin: 10px 0; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+
+        /* ปุ่มขับไล่ */
         #panic-btn {
-            width: 160px; height: 160px; border-radius: 50%; background: transparent; 
-            border: 6px solid var(--color-sec); color: var(--color-sec); font-family: 'Kanit';
-            font-size: 1.4rem; font-weight: 900; cursor: pointer; transition: 0.2s;
-            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3); display: flex; align-items: center; justify-content: center;
+            width: 150px; height: 150px; border-radius: 50%; background: transparent; 
+            border: 5px solid var(--color-sec); color: var(--color-sec); font-family: 'Kanit';
+            font-size: 1.3rem; font-weight: 900; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.2);
         }
-        #panic-btn:active { background: var(--color-sec); color: #fff; animation: shake 0.2s infinite; }
-        @keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(2px, -2px); } }
+        #panic-btn:active { background: var(--color-sec); color: #fff; transform: scale(0.9); box-shadow: 0 0 50px var(--color-sec); }
 
-        /* อุปกรณ์อื่นๆ */
-        .device-bar { background: var(--card); border-radius: 30px; padding: 25px; display: flex; justify-content: space-around; flex-grow: 1; border: 1px solid rgba(255,255,255,0.1); }
-        .bulb-icon { font-size: 3.5rem; color: #222; transition: 0.5s; }
-        .bulb-icon.on { color: #fffb00; filter: drop-shadow(0 0 20px #fffb00); }
+        /* ตาราง Log เคลื่อนไหวช้าๆ */
+        .log-box { background: var(--card); border-radius: 30px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ตาราง Log */
-        .log-box { background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid rgba(255,255,255,0.05); }
         table { width: 100%; border-collapse: collapse; }
-        th { color: #aaa; padding: 15px; border-bottom: 3px solid #333; font-size: 1.1rem; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #222; font-size: 1rem; }
+        th { color: var(--color-temp); padding: 15px; border-bottom: 2px solid #333; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #1a1a1a; font-size: 0.95rem; }
     </style>
 </head>
 <body>
 
 <div class="energy-wave"></div>
-<div class="grid-overlay"></div>
 
 <div class="dashboard">
-    <div class="header">
-        <div><h1>VIEWVI CONTROL</h1><div style="color: var(--color-env);">● ระบบตรวจสอบแบบเรียลไทม์</div></div>
-        <div class="time-box">
-            <div id="date">--/--/----</div>
-            <div id="clock">00:00:00</div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px;">
+        <div>
+            <h1 style="font-family:'Orbitron'; font-size: 3rem; margin:0; color:var(--color-temp); text-shadow: 0 0 20px var(--color-temp);">VIEWVI PRO</h1>
+            <div id="status-tag" style="color:var(--color-env); font-weight:bold;">● SYSTEM DYNAMIC ACTIVE</div>
+        </div>
+        <div style="text-align:right; font-family:'Orbitron';">
+            <div id="date" style="font-size: 1.2rem; color: #aaa;">--/--/----</div>
+            <div id="clock" style="font-size: 3rem; font-weight:900;">00:00:00</div>
         </div>
     </div>
 
     <div class="grid">
-        <div class="card temp">
-            <div class="card-label label-temp">อุณหภูมิเครื่อง</div>
+        <div class="card temp"><div class="card-inner">
+            <div style="color:var(--color-temp); font-weight:bold; font-size:1.5rem;">อุณหภูมิ</div>
             <div class="gauge-wrap"><div id="temp-bar"></div></div>
-            <div class="big-value" id="t-val" style="color: var(--color-temp);">--</div>
-            <span style="font-size: 1.2rem; color: #718096;">CELSIUS SCALE</span>
-        </div>
+            <div class="big-val" id="t-val" style="color:var(--color-temp)">--</div>
+            <div style="color:#555;">DYNAMIC GRADIENT</div>
+        </div></div>
 
-        <div class="card env">
-            <div class="card-label label-env">สภาพแวดล้อม</div>
-            <div style="margin: 50px 0;">
-                <div style="font-size: 1.1rem; color: #718096;">ความชื้นอากาศ</div>
-                <div class="sub-value" id="h-val">--</div><span style="color: var(--color-env);">% RH</span>
+        <div class="card env"><div class="card-inner">
+            <div style="color:var(--color-env); font-weight:bold; font-size:1.5rem;">สภาพแวดล้อม</div>
+            <div style="margin: 60px 0;">
+                <div style="color:#777;">อากาศ</div>
+                <div style="font-size: 2.5rem; font-weight:bold;"><span id="h-val">--</span> %</div>
             </div>
-            <div style="margin: 30px 0; padding-top: 30px; border-top: 1px solid #333;">
-                <div style="font-size: 1.1rem; color: #718096;">ความชื้นในดิน</div>
-                <div class="sub-value" id="s-val" style="color: var(--color-env);">--</div><span>% SOIL</span>
+            <div style="padding-top: 30px; border-top: 1px solid #222;">
+                <div style="color:#777;">ในดิน</div>
+                <div style="font-size: 2.5rem; font-weight:bold; color:var(--color-env);"><span id="s-val">--</span> %</div>
             </div>
-        </div>
+        </div></div>
 
-        <div class="card sec">
-            <div class="card-label label-sec">ระบบความปลอดภัย</div>
+        <div class="card sec"><div class="card-inner">
+            <div style="color:var(--color-sec); font-weight:bold; font-size:1.5rem;">ความปลอดภัย</div>
             <div id="sec-icon" style="font-size: 8rem; margin: 40px 0;">🛡️</div>
-            <div id="sec-text" style="font-size: 2rem; font-weight: 900; color: var(--color-env);">ปกติ</div>
-        </div>
+            <div id="sec-text" style="font-size: 2rem; font-weight:900; color:var(--color-env);">READY</div>
+        </div></div>
     </div>
 
-    <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 25px;">
+    <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 30px;">
         <button id="panic-btn" onmousedown="setPanic(1)" onmouseup="setPanic(0)" ontouchstart="setPanic(1)" ontouchend="setPanic(0)">
             กดค้าง<br>ขับไล่
         </button>
-        <div class="device-bar">
-            <div style="text-align: center;"><span class="bulb-icon" id="bulb1">💡</span><br><b>ไฟ 1</b></div>
-            <div style="text-align: center;"><span class="bulb-icon" id="bulb2">💡</span><br><b>ไฟ 2</b></div>
-            <div style="text-align: center;"><div id="spk-icon" style="font-size: 3rem; opacity: 0.2;">🔇</div><b>ไซเรน</b></div>
+        <div style="flex-grow:1; background:var(--card); border-radius:30px; padding:25px; display:flex; justify-content:space-around; border:1px solid #222;">
+            <div style="text-align:center;"><span id="bulb1" style="font-size:3rem; opacity:0.2; transition:0.5s;">💡</span><br><b>ไฟ 1</b></div>
+            <div style="text-align:center;"><span id="bulb2" style="font-size:3rem; opacity:0.2; transition:0.5s;">💡</span><br><b>ไฟ 2</b></div>
+            <div style="text-align:center;"><span id="spk-icon" style="font-size:3rem; opacity:0.2; transition:0.5s;">🔊</span><br><b>ไซเรน</b></div>
         </div>
     </div>
 
     <div class="log-box">
-        <h2 style="font-size: 1.5rem; margin-top: 0;">📊 บันทึกประวัติระบบ (วัน/เดือน/ปี)</h2>
-        <div style="max-height: 300px; overflow-y: auto;">
+        <h2 style="margin-top:0; color:var(--color-temp);">📑 บันทึกเหตุการณ์ (วัน/เดือน/ปี)</h2>
+        <div style="max-height: 250px; overflow-y: auto;">
             <table>
-                <thead><tr><th>วัน / เดือน / ปี</th><th>เวลา</th><th>รายการ</th><th>สถานะ</th></tr></thead>
+                <thead><tr><th>วัน / เดือน / ปี</th><th>เวลา</th><th>เหตุการณ์</th><th>สถานะ</th></tr></thead>
                 <tbody id="log-body"></tbody>
             </table>
         </div>
@@ -165,63 +156,56 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let lastSec = 0; let lastT = false;
-
-    // เวลาและวันที่ครบถ้วน
     setInterval(() => {
         const now = new Date();
         document.getElementById('date').innerText = now.toLocaleDateString('th-TH', { day:'2-digit', month:'long', year:'numeric' });
         document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
     }, 1000);
 
-    function setPanic(val) {
-        db.ref("/").update({ panicMode: val });
-        if(val === 1) addLog("คำสั่งเสริม", "🚨 สั่งเปิดไซเรนขับไล่", true);
-    }
+    function setPanic(v) { db.ref("/").update({ panicMode: v }); if(v) addLog("MANUAL", "🚨 เปิดไซเรนขับไล่", true); }
 
-    function addLog(type, msg, isAlert) {
+    function addLog(type, msg, alert) {
         const tbody = document.getElementById("log-body");
         const row = document.createElement("tr");
         const now = new Date();
-        const d = now.toLocaleDateString('th-TH', {day:'2-digit', month:'2-digit', year:'numeric'});
-        const t = now.toLocaleTimeString('th-TH');
-        
         row.innerHTML = `
-            <td>${d}</td><td>${t}</td><td><b>${type}</b>: ${msg}</td>
-            <td style="color:${isAlert ? '#ff003c':'#00ff9d'}">${isAlert ? '⚠ แจ้งเตือน':'✔ ปกติ'}</td>
+            <td>${now.toLocaleDateString('th-TH')}</td>
+            <td>${now.toLocaleTimeString('th-TH')}</td>
+            <td><b>${type}</b>: ${msg}</td>
+            <td style="color:${alert?'#ff003c':'#00ff9d'}">${alert?'⚠ แจ้งเตือน':'✔ ปกติ'}</td>
         `;
         tbody.prepend(row);
-        if (tbody.rows.length > 50) tbody.deleteRow(50);
     }
 
-    db.ref("/").on("value", (snapshot) => {
-        const data = snapshot.val();
+    let lastSec = 0; let lastT = false;
+    db.ref("/").on("value", (snap) => {
+        const data = snap.val();
         if (data) {
-            const temp = data.temperature || 0;
+            const t = data.temperature || 0;
             const sec = data.Security == 1;
 
-            document.getElementById("t-val").innerText = temp;
-            document.getElementById("temp-bar").style.height = Math.min(temp * 2.5, 100) + "%";
+            document.getElementById("t-val").innerText = t;
+            document.getElementById("temp-bar").style.height = Math.min(t * 2.5, 100) + "%";
             document.getElementById("h-val").innerText = data.Humidity || "--";
             document.getElementById("s-val").innerText = data.Soil || "--";
 
             const sIcon = document.getElementById("sec-icon");
             const sText = document.getElementById("sec-text");
             sIcon.innerText = sec ? "🚨" : "🛡️";
-            sIcon.style.filter = sec ? "drop-shadow(0 0 20px var(--color-sec))" : "none";
-            sText.innerText = sec ? "พบการบุกรุก!" : "ปกติ";
+            sText.innerText = sec ? "BREACH!" : "READY";
             sText.style.color = sec ? "var(--color-sec)" : "var(--color-env)";
 
-            document.getElementById("bulb1").className = sec ? "bulb-icon on" : "bulb-icon";
-            document.getElementById("bulb2").className = temp > 30 ? "bulb-icon on" : "bulb-icon";
-            document.getElementById("spk-icon").innerText = (sec || data.panicMode == 1) ? "🔊" : "🔇";
-            document.getElementById("spk-icon").style.opacity = (sec || data.panicMode == 1) ? "1" : "0.2";
+            document.getElementById("bulb1").style.opacity = sec ? "1" : "0.2";
+            document.getElementById("bulb1").style.color = sec ? "#fffb00" : "#fff";
+            document.getElementById("bulb2").style.opacity = t > 30 ? "1" : "0.2";
+            document.getElementById("bulb2").style.color = t > 30 ? "#fffb00" : "#fff";
+            document.getElementById("spk-icon").style.opacity = (sec || data.panicMode) ? "1" : "0.2";
+            document.getElementById("spk-icon").style.color = (sec || data.panicMode) ? "var(--color-sec)" : "#fff";
 
-            if (sec && lastSec === 0) { addLog("ความปลอดภัย", "เซนเซอร์ตรวจพบวัตถุ", true); lastSec = 1; }
-            else if (!sec) lastSec = 0;
-
-            if (temp > 30 && !lastT) { addLog("ความร้อน", `อุณหภูมิสูงเกินกำหนด (${temp}°C)`, true); lastT = true; }
-            else if (temp <= 30) lastT = false;
+            if(sec && !lastSec) { addLog("SECURITY", "ตรวจพบการเคลื่อนไหว", true); lastSec = 1; } 
+            else if(!sec) lastSec = 0;
+            if(t > 30 && !lastT) { addLog("TEMP", `ความร้อนสูง: ${t}°C`, true); lastT = true; }
+            else if(t <= 30) lastT = false;
         }
     });
 </script>
