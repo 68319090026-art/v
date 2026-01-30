@@ -3,122 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewvi Command Center Pro</title>
+    <title>Viewvi Smart Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon-blue: #00d2ff; --neon-green: #39ff14; --neon-red: #ff3131;
-            --bg-dark: #0f172a; --card-bg: rgba(30, 41, 59, 0.7);
+        :root { --neon-blue: #00f2ff; --neon-green: #39ff14; --neon-red: #ff0055; --neon-yellow: #ffea00; }
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; margin: 0; padding: 20px; color: #fff;
         }
-        body {
-            font-family: 'Kanit', sans-serif; margin: 0; min-height: 100vh;
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-            color: #f8fafc; display: flex; justify-content: center; align-items: center;
-        }
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.1; z-index: -1;
-        }
-
-        .dashboard {
-            background: var(--card-bg); backdrop-filter: blur(25px);
-            border-radius: 30px; padding: 40px; width: 90%; max-width: 1100px;
-            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-        }
-
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .header h1 { font-size: 1.8rem; margin: 0; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+        .container { max-width: 1100px; margin: auto; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 40px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); }
         
-        #clock { font-size: 1.5rem; color: #94a3b8; font-weight: 700; }
+        /* สถานะปิดระบบ (Overlay) */
+        .system-off-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); border-radius: 25px; display: none; align-items: center; justify-content: center; z-index: 10; font-weight: bold; color: #666; }
+        .card { position: relative; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); text-align: center; overflow: hidden; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; transition: opacity 0.5s ease; }
-        .card { background: rgba(15, 23, 42, 0.5); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        
-        /* หลอดอุณหภูมิ */
-        .temp-meter {
-            width: 50px; height: 180px; background: #020617; border-radius: 12px;
-            margin: 20px auto; position: relative; border: 1px solid #334155; overflow: hidden;
-        }
-        #temp-fill {
-            position: absolute; bottom: 0; width: 100%; height: 0%;
-            background: linear-gradient(to top, var(--neon-green), #fbbf24, var(--neon-red));
-            box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        #clock { font-size: 1.8rem; font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
 
-        .val { font-size: 3.2rem; font-weight: 700; margin: 10px 0; }
-        .unit { font-size: 1.2rem; color: #64748b; }
+        .btn-on { background: var(--neon-green); color: #000; border:none; padding:10px 20px; border-radius:50px; cursor:pointer; font-family:'Kanit'; font-weight:700; }
+        .btn-off { background: var(--neon-red); color: #fff; border:none; padding:10px 20px; border-radius:50px; cursor:pointer; font-family:'Kanit'; font-weight:700; }
         
-        .status-panel { display: flex; justify-content: space-around; margin-top: 35px; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; transition: opacity 0.5s ease; }
-        .indicator { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .led { width: 16px; height: 16px; border-radius: 50%; background: #334155; box-shadow: inset 0 0 5px #000; }
-        .led.active-temp { background: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
-        .led.active-sec { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
-
-        .power-btn {
-            padding: 12px 35px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
-            font-family: 'Kanit'; cursor: pointer; transition: 0.3s; font-weight: 700;
-        }
-        .btn-on { background: rgba(57, 255, 20, 0.1); color: var(--neon-green); border-color: var(--neon-green); }
-        .btn-off { background: rgba(255, 49, 49, 0.1); color: var(--neon-red); border-color: var(--neon-red); margin-left: 10px; }
+        .temp-meter { width: 40px; height: 150px; background: #111; border-radius: 20px; margin: 10px auto; border: 2px solid #333; position: relative; overflow: hidden; }
+        #temp-fill { position: absolute; bottom: 0; width: 100%; height: 0%; background: linear-gradient(to top, #39ff14, #ffaa00, #ff0055); box-shadow: 0 0 25px #ffaa00; transition: height 1s; }
         
-        /* สไตล์เมื่อระบบปิด */
-        .system-off .val, .system-off .unit, .system-off #temp-fill { opacity: 0; }
-        .system-off #sec-icon { filter: grayscale(1); opacity: 0.2; }
-        .system-off #sec-status { color: #444 !important; }
-        .system-off .status-panel { opacity: 0.3; pointer-events: none; }
+        .val { font-size: 2.5rem; font-weight: 700; color: var(--neon-blue); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        
+        /* สไตล์ตาราง */
+        .history { margin-top: 30px; background: rgba(0,0,0,0.4); border-radius: 20px; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { color: var(--neon-blue); padding: 10px; border-bottom: 2px solid #444; }
+        td { padding: 10px; border-bottom: 1px solid #333; text-align: center; }
     </style>
 </head>
-<body id="main-body">
+<body>
 
-<div class="dashboard" id="dashboard-box">
-    <div class="header">
-        <h1>VIEWVI COMMAND CENTER</h1>
-        <div id="clock">00:00:00</div>
+<div class="container">
+    <div class="top-bar">
         <div>
-            <button class="power-btn btn-on" onclick="setPower(true)">เปิดระบบ</button>
-            <button class="power-btn btn-off" onclick="setPower(false)">ปิดระบบ</button>
+            <div id="clock">00:00:00</div>
+            <div id="date">--</div>
+        </div>
+        <div>
+            <span id="sys-status-text" style="margin-right:15px">สถานะ: กำลังโหลด...</span>
+            <button class="btn-on" onclick="toggleSystem(1)">เปิด</button>
+            <button class="btn-off" onclick="toggleSystem(0)">ปิด</button>
         </div>
     </div>
 
-    <div class="grid" id="data-grid">
+    <div class="grid">
         <div class="card">
-            <div style="color: var(--neon-blue);">อุณหภูมิ</div>
+            <div class="system-off-overlay" id="ovl1">SYSTEM OFF</div>
+            <div>🌡️ อุณหภูมิ</div>
             <div class="temp-meter"><div id="temp-fill"></div></div>
-            <div class="val"><span id="t-val">--</span><span class="unit">°C</span></div>
+            <div class="val"><span id="t-val">--</span>°C</div>
         </div>
-
         <div class="card">
-            <div style="color: var(--neon-green);">ความชื้น</div>
-            <div class="val" id="h-val" style="color: var(--neon-blue); margin-top: 40px;">--<span class="unit">%</span></div>
-            <div style="font-size: 0.8rem; opacity: 0.5;">อากาศ</div>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 30px 0;">
-            <div class="val" id="s-val" style="color: var(--neon-green);">--<span class="unit">%</span></div>
-            <div style="font-size: 0.8rem; opacity: 0.5;">ในดิน</div>
+            <div class="system-off-overlay" id="ovl2">SYSTEM OFF</div>
+            <div>💧 ความชื้นอากาศ/ดิน</div>
+            <div class="val" id="h-val" style="color:var(--neon-green)">--%</div>
+            <hr style="opacity:0.2">
+            <div class="val" id="s-val" style="color:var(--neon-yellow)">--%</div>
         </div>
-
         <div class="card">
-            <div style="color: var(--neon-red);">ความปลอดภัย</div>
-            <div id="sec-icon" style="font-size: 5.5rem; margin: 40px 0; transition: 0.5s;">🛡️</div>
-            <div id="sec-status" style="font-size: 1.5rem; font-weight: 700;">--</div>
+            <div class="system-off-overlay" id="ovl3">SYSTEM OFF</div>
+            <div>🛡️ ความปลอดภัย</div>
+            <div id="sec-icon" style="font-size: 4rem; margin: 15px 0;">🛡️</div>
+            <div id="sec-text" style="font-size: 1.2rem; font-weight:700;">ปกติ</div>
         </div>
     </div>
 
-    <div class="status-panel">
-        <div class="indicator">
-            <div id="led-t" class="led"></div>
-            <div style="font-size: 0.7rem;">ไฟอุณหภูมิ</div>
-        </div>
-        <div class="indicator">
-            <div id="led-s" class="led"></div>
-            <div style="font-size: 0.7rem;">ไฟตรวจจับ</div>
-        </div>
-        <div class="indicator">
-            <div id="buz-icon" style="font-size: 1.2rem; opacity: 0.3;">🔊</div>
-            <div id="buz-txt" style="font-size: 0.7rem;">บัซเซอร์: ปิด</div>
-        </div>
+    <div class="history" id="history-box">
+        <h3 style="margin:0;">📋 บันทึกประวัติ</h3>
+        <table>
+            <thead><tr><th>วันที่</th><th>เวลา</th><th>อุณหภูมิ</th><th>สถานะ</th></tr></thead>
+            <tbody id="log-table"></tbody>
+        </table>
     </div>
 </div>
 
@@ -127,39 +91,56 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function setPower(v) { db.ref("/systemOn").set(v); }
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
+        document.getElementById('date').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    setInterval(updateClock, 1000);
 
-    setInterval(() => { 
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString('th-TH'); 
-    }, 1000);
+    function toggleSystem(status) {
+        db.ref("/SystemStatus").set(status);
+    }
 
     db.ref("/").on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
-            const isOn = data.systemOn === true;
-            const box = document.getElementById("dashboard-box");
+            const isSystemOn = data.SystemStatus === 1;
             
-            if (isOn) {
-                box.classList.remove("system-off");
-                const t = data.temperature || 0;
-                document.getElementById("t-val").innerText = t;
-                document.getElementById("temp-fill").style.height = (t / 50 * 100) + "%";
-                document.getElementById("h-val").innerHTML = (data.Humidity || "--") + "<span class='unit'>%</span>";
-                document.getElementById("s-val").innerHTML = (data.Soil || "--") + "<span class='unit'>%</span>";
+            // อัปเดตข้อความสถานะ
+            document.getElementById("sys-status-text").innerText = "สถานะ: " + (isSystemOn ? "ระบบเปิดใช้งาน" : "ระบบปิดการทำงาน");
+            document.getElementById("sys-status-text").style.color = isSystemOn ? "var(--neon-green)" : "var(--neon-red)";
+
+            // ควบคุมการแสดงผล Overlay (ซ่อนค่า)
+            const overlays = ["ovl1", "ovl2", "ovl3"];
+            overlays.forEach(id => {
+                document.getElementById(id).style.display = isSystemOn ? "none" : "flex";
+            });
+            document.getElementById("history-box").style.opacity = isSystemOn ? "1" : "0.2";
+
+            if (isSystemOn) {
+                // อัปเดตข้อมูลเมื่อเปิดระบบเท่านั้น
+                const temp = data.temperature || 0;
+                document.getElementById("t-val").innerText = temp;
+                document.getElementById("temp-fill").style.height = Math.min((temp/50)*100, 100) + "%";
+                document.getElementById("h-val").innerText = (data.Humidity || "--") + "%";
+                document.getElementById("s-val").innerText = (data.Soil || "--") + "%";
 
                 const isAlert = data.Security === 1;
-                document.getElementById("sec-status").innerText = isAlert ? "⚠️ ตรวจพบวัตถุ!" : "สถานะปกติ";
-                document.getElementById("sec-status").style.color = isAlert ? "var(--neon-red)" : "var(--neon-green)";
+                document.getElementById("sec-text").innerText = isAlert ? "⚠️ พบวัตถุ!" : "ปกติ";
                 document.getElementById("sec-icon").innerText = isAlert ? "🚨" : "🛡️";
 
-                document.getElementById("led-t").className = t > 30 ? "led active-temp" : "led";
-                document.getElementById("led-s").className = isAlert ? "led active-sec" : "led";
-                document.getElementById("buz-icon").style.opacity = isAlert ? "1" : "0.3";
-                document.getElementById("buz-txt").innerText = isAlert ? "บัซเซอร์: ดัง" : "บัซเซอร์: ปิด";
+                // บันทึกตาราง
+                const table = document.getElementById("log-table");
+                const row = table.insertRow(0);
+                row.innerHTML = `<td>${new Date().toLocaleDateString()}</td><td>${new Date().toLocaleTimeString()}</td><td>${temp}°C</td><td>${isAlert?'พบวัตถุ':'ปกติ'}</td>`;
+                if (table.rows.length > 5) table.deleteRow(5);
             } else {
-                box.classList.add("system-off");
-                document.getElementById("sec-status").innerText = "ปิดระบบแล้ว";
-                document.getElementById("sec-status").style.color = "#444";
+                // ล้างค่าเมื่อปิดระบบ
+                document.getElementById("t-val").innerText = "--";
+                document.getElementById("temp-fill").style.height = "0%";
+                document.getElementById("h-val").innerText = "--%";
+                document.getElementById("s-val").innerText = "--%";
             }
         }
     });
