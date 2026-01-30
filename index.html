@@ -16,9 +16,7 @@
             font-family: 'Kanit', sans-serif; margin: 0; min-height: 100vh;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
             color: #f8fafc; display: flex; justify-content: center; align-items: center;
-            background-attachment: fixed;
         }
-        /* พื้นหลัง Carbon Fiber */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
@@ -29,19 +27,17 @@
             background: var(--card-bg); backdrop-filter: blur(25px);
             border-radius: 30px; padding: 40px; width: 90%; max-width: 1100px;
             border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            position: relative; overflow: hidden;
         }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .header h1 { font-size: 1.8rem; margin: 0; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); letter-spacing: 1px; }
+        .header h1 { font-size: 1.8rem; margin: 0; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
         
         #clock { font-size: 1.5rem; color: #94a3b8; font-weight: 700; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-        .card { background: rgba(15, 23, 42, 0.5); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.05); text-align: center; transition: 0.3s; }
-        .card:hover { border-color: var(--neon-blue); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; transition: opacity 0.5s ease; }
+        .card { background: rgba(15, 23, 42, 0.5); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
         
-        /* หลอดอุณหภูมิเรืองแสง */
+        /* หลอดอุณหภูมิ */
         .temp-meter {
             width: 50px; height: 180px; background: #020617; border-radius: 12px;
             margin: 20px auto; position: relative; border: 1px solid #334155; overflow: hidden;
@@ -53,44 +49,33 @@
         }
 
         .val { font-size: 3.2rem; font-weight: 700; margin: 10px 0; }
-        .unit { font-size: 1.2rem; color: #64748b; margin-left: 5px; }
+        .unit { font-size: 1.2rem; color: #64748b; }
         
-        /* แผงสถานะอุปกรณ์ */
-        .status-panel { display: flex; justify-content: space-around; margin-top: 35px; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .status-panel { display: flex; justify-content: space-around; margin-top: 35px; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; transition: opacity 0.5s ease; }
         .indicator { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .led { width: 16px; height: 16px; border-radius: 50%; background: #334155; box-shadow: inset 0 0 5px #000; transition: 0.3s; }
+        .led { width: 16px; height: 16px; border-radius: 50%; background: #334155; box-shadow: inset 0 0 5px #000; }
         .led.active-temp { background: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
         .led.active-sec { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
 
-        /* ปุ่มควบคุมพลังงาน */
         .power-btn {
             padding: 12px 35px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
-            font-family: 'Kanit'; cursor: pointer; transition: 0.3s; font-weight: 700; font-size: 1rem;
+            font-family: 'Kanit'; cursor: pointer; transition: 0.3s; font-weight: 700;
         }
-        .btn-on { background: rgba(57, 255, 20, 0.15); color: var(--neon-green); border-color: var(--neon-green); }
-        .btn-on:hover { background: var(--neon-green); color: #000; }
-        .btn-off { background: rgba(255, 49, 49, 0.15); color: var(--neon-red); border-color: var(--neon-red); margin-left: 10px; }
-        .btn-off:hover { background: var(--neon-red); color: #fff; }
+        .btn-on { background: rgba(57, 255, 20, 0.1); color: var(--neon-green); border-color: var(--neon-green); }
+        .btn-off { background: rgba(255, 49, 49, 0.1); color: var(--neon-red); border-color: var(--neon-red); margin-left: 10px; }
         
-        /* หน้าจอล็อคเมื่อปิดระบบ */
-        .lock-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
-            display: none; z-index: 100; flex-direction: column; align-items: center; justify-content: center;
-        }
+        /* สไตล์เมื่อระบบปิด */
+        .system-off .val, .system-off .unit, .system-off #temp-fill { opacity: 0; }
+        .system-off #sec-icon { filter: grayscale(1); opacity: 0.2; }
+        .system-off #sec-status { color: #444 !important; }
+        .system-off .status-panel { opacity: 0.3; pointer-events: none; }
     </style>
 </head>
-<body>
+<body id="main-body">
 
-<div class="dashboard">
-    <div id="lock-screen" class="lock-screen">
-        <div style="font-size: 6rem; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--neon-red));">🔒</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: var(--neon-red); letter-spacing: 2px;">ระบบปิดการทำงาน</div>
-        <div style="color: #64748b; margin-top: 10px;">กรุณากดปุ่มเปิดเพื่อเริ่มการทำงานอีกครั้ง</div>
-    </div>
-
+<div class="dashboard" id="dashboard-box">
     <div class="header">
-        <h1>VIEWVI COMMAND CENTER PRO</h1>
+        <h1>VIEWVI COMMAND CENTER</h1>
         <div id="clock">00:00:00</div>
         <div>
             <button class="power-btn btn-on" onclick="setPower(true)">เปิดระบบ</button>
@@ -98,41 +83,41 @@
         </div>
     </div>
 
-    <div class="grid">
+    <div class="grid" id="data-grid">
         <div class="card">
-            <div style="color: var(--neon-blue); font-weight: 500;">อุณหภูมิปัจจุบัน</div>
+            <div style="color: var(--neon-blue);">อุณหภูมิ</div>
             <div class="temp-meter"><div id="temp-fill"></div></div>
-            <div class="val"><span id="t-val" style="color: #fff;">--</span><span class="unit">°C</span></div>
+            <div class="val"><span id="t-val">--</span><span class="unit">°C</span></div>
         </div>
 
         <div class="card">
-            <div style="color: var(--neon-green); font-weight: 500;">สภาวะแวดล้อม</div>
+            <div style="color: var(--neon-green);">ความชื้น</div>
             <div class="val" id="h-val" style="color: var(--neon-blue); margin-top: 40px;">--<span class="unit">%</span></div>
-            <div style="font-size: 0.8rem; opacity: 0.6;">ความชื้นอากาศ</div>
+            <div style="font-size: 0.8rem; opacity: 0.5;">อากาศ</div>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 30px 0;">
             <div class="val" id="s-val" style="color: var(--neon-green);">--<span class="unit">%</span></div>
-            <div style="font-size: 0.8rem; opacity: 0.6;">ความชื้นในดิน</div>
+            <div style="font-size: 0.8rem; opacity: 0.5;">ในดิน</div>
         </div>
 
         <div class="card">
-            <div style="color: var(--neon-red); font-weight: 500;">ความปลอดภัย</div>
-            <div id="sec-icon" style="font-size: 5.5rem; margin: 40px 0; filter: drop-shadow(0 0 15px rgba(255,49,49,0.4));">🛡️</div>
-            <div id="sec-status" style="font-size: 1.5rem; font-weight: 700;">สถานะปกติ</div>
+            <div style="color: var(--neon-red);">ความปลอดภัย</div>
+            <div id="sec-icon" style="font-size: 5.5rem; margin: 40px 0; transition: 0.5s;">🛡️</div>
+            <div id="sec-status" style="font-size: 1.5rem; font-weight: 700;">--</div>
         </div>
     </div>
 
     <div class="status-panel">
         <div class="indicator">
             <div id="led-t" class="led"></div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">ไฟเตือนอุณหภูมิ</div>
+            <div style="font-size: 0.7rem;">ไฟอุณหภูมิ</div>
         </div>
         <div class="indicator">
             <div id="led-s" class="led"></div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">ไฟตรวจจับวัตถุ</div>
+            <div style="font-size: 0.7rem;">ไฟตรวจจับ</div>
         </div>
         <div class="indicator">
-            <div id="buz-icon" style="font-size: 1.4rem; opacity: 0.3;">🔊</div>
-            <div id="buz-txt" style="font-size: 0.8rem; color: #94a3b8;">บัซเซอร์: ปิด</div>
+            <div id="buz-icon" style="font-size: 1.2rem; opacity: 0.3;">🔊</div>
+            <div id="buz-txt" style="font-size: 0.7rem;">บัซเซอร์: ปิด</div>
         </div>
     </div>
 </div>
@@ -142,46 +127,39 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ฟังก์ชันส่งค่าเปิด/ปิดไป Firebase
     function setPower(v) { db.ref("/systemOn").set(v); }
 
-    // นาฬิกาแบบไทย
     setInterval(() => { 
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString('th-TH', { hour12: false }); 
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('th-TH'); 
     }, 1000);
 
-    // รับข้อมูลจาก Firebase
     db.ref("/").on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
             const isOn = data.systemOn === true;
-            document.getElementById("lock-screen").style.display = isOn ? "none" : "flex";
-
+            const box = document.getElementById("dashboard-box");
+            
             if (isOn) {
-                // อุณหภูมิ
-                const t = data.temperature || 0; 
+                box.classList.remove("system-off");
+                const t = data.temperature || 0;
                 document.getElementById("t-val").innerText = t;
                 document.getElementById("temp-fill").style.height = (t / 50 * 100) + "%";
-                
-                // ความชื้น
                 document.getElementById("h-val").innerHTML = (data.Humidity || "--") + "<span class='unit'>%</span>";
                 document.getElementById("s-val").innerHTML = (data.Soil || "--") + "<span class='unit'>%</span>";
 
-                // ความปลอดภัย
-                const isAlert = data.Security === 1; 
-                document.getElementById("sec-status").innerText = isAlert ? "⚠️ พบผู้บุกรุก!" : "สถานะปกติ";
+                const isAlert = data.Security === 1;
+                document.getElementById("sec-status").innerText = isAlert ? "⚠️ ตรวจพบวัตถุ!" : "สถานะปกติ";
                 document.getElementById("sec-status").style.color = isAlert ? "var(--neon-red)" : "var(--neon-green)";
                 document.getElementById("sec-icon").innerText = isAlert ? "🚨" : "🛡️";
 
-                // สถานะไฟ LED และเสียง
                 document.getElementById("led-t").className = t > 30 ? "led active-temp" : "led";
                 document.getElementById("led-s").className = isAlert ? "led active-sec" : "led";
-                
-                const bIcon = document.getElementById("buz-icon");
-                bIcon.style.opacity = isAlert ? "1" : "0.3";
-                bIcon.style.color = isAlert ? "var(--neon-red)" : "#fff";
+                document.getElementById("buz-icon").style.opacity = isAlert ? "1" : "0.3";
                 document.getElementById("buz-txt").innerText = isAlert ? "บัซเซอร์: ดัง" : "บัซเซอร์: ปิด";
-                document.getElementById("buz-txt").style.color = isAlert ? "var(--neon-red)" : "#94a3b8";
+            } else {
+                box.classList.add("system-off");
+                document.getElementById("sec-status").innerText = "ปิดระบบแล้ว";
+                document.getElementById("sec-status").style.color = "#444";
             }
         }
     });
