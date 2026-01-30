@@ -3,101 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewvi Smart Home Dashboard</title>
+    <title>Viewvi Smart Home</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background: #f4f7f9; text-align: center; padding: 20px; color: #333; }
-        h1 { color: #1a73e8; margin-bottom: 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .card { background: white; padding: 25px; border-radius: 20px; width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); transition: 0.3s; border-bottom: 5px solid #ddd; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .value { font-size: 2.8rem; font-weight: bold; margin: 15px 0; color: #1a73e8; }
-        .label { font-size: 1.1rem; color: #5f6368; font-weight: 500; }
-        .unit { font-size: 1rem; color: #9aa0a6; }
-        
-        /* ตกแต่งสีตามสถานะ */
-        .temp-card { border-bottom-color: #ff7043; }
-        .hum-card { border-bottom-color: #42a5f5; }
-        .soil-card { border-bottom-color: #8d6e63; }
-        .sec-card { border-bottom-color: #66bb6a; }
-        
-        .status-warn { color: #d93025; animation: blink 1.2s infinite; }
+        body { font-family: 'Kanit', sans-serif; background: #f0f4f8; text-align: center; padding: 20px; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; width: 180px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-bottom: 5px solid #1a73e8; }
+        .value { font-size: 2.5rem; font-weight: bold; color: #1a73e8; margin: 10px 0; }
+        .label { font-size: 1rem; color: #5f6368; }
+        .status-warn { color: #d93025; }
         .status-ok { color: #1e8e3e; }
-        @keyframes blink { 50% { opacity: 0.6; } }
     </style>
 </head>
 <body>
-
     <h1>🏠 Viewvi Smart Home Dashboard</h1>
-
     <div class="container">
-        <div class="card temp-card">
-            <div class="label">🌡️ อุณหภูมิ</div>
+        <div class="card">
+            <div class="label">อุณหภูมิ</div>
             <div id="temp" class="value">--</div>
             <span class="unit">°C</span>
         </div>
-
-        <div class="card hum-card">
-            <div class="label">💧 ความชื้นอากาศ</div>
+        <div class="card">
+            <div class="label">ความชื้นอากาศ</div>
             <div id="hum" class="value">--</div>
             <span class="unit">%</span>
         </div>
-
-        <div class="card soil-card">
-            <div class="label">🌱 ความชื้นดิน</div>
+        <div class="card">
+            <div class="label">ความชื้นในดิน</div>
             <div id="soil" class="value">--</div>
             <span class="unit">%</span>
         </div>
-
-        <div class="card sec-card" id="security-card">
-            <div class="label">🛡️ ความปลอดภัย</div>
-            <div id="security" class="value" style="font-size: 1.5rem; margin-top: 25px;">รอข้อมูล...</div>
+        <div class="card">
+            <div class="label">การตรวจจับวัตถุ</div>
+            <div id="security" class="value" style="font-size: 1.5rem; margin-top: 20px;">--</div>
         </div>
     </div>
 
     <script>
-        // การตั้งค่า Firebase (จากรูป image_80c06f.png)
         const firebaseConfig = {
             databaseURL: "https://viewvi-3e5ef-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ดึงข้อมูลจากตำแหน่งนอกสุด (Root) ของ Firebase
+        // ดึงข้อมูลจากตำแหน่งนอกสุด (Root)
         db.ref("/").on("value", (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // 1. อุณหภูมิ (ดึงจาก key: temperature)
-                if(data.temperature !== undefined) {
-                    document.getElementById("temp").innerText = data.temperature;
-                }
-
-                // 2. ความชื้นอากาศ (ดึงจาก key: Humidity)
-                if(data.Humidity !== undefined) {
-                    document.getElementById("hum").innerText = typeof data.Humidity === 'number' ? data.Humidity.toFixed(1) : data.Humidity;
-                }
-
-                // 3. ความชื้นดิน (ดึงจาก key: Soil)
-                if(data.Soil !== undefined) {
-                    document.getElementById("soil").innerText = data.Soil;
-                }
-
-                // 4. การตรวจจับวัตถุ (ดึงจาก key: Security)
-                const secDiv = document.getElementById("security");
-                const secCard = document.getElementById("security-card");
+                // ต้องสะกดให้ตรงกับรูป image_7efe1f.png เป๊ะๆ
+                document.getElementById("temp").innerText = data.temperature ? data.temperature : "--"; // t ตัวเล็ก
+                document.getElementById("hum").innerText = data.Humidity ? data.Humidity : "--";       // H ตัวใหญ่
+                document.getElementById("soil").innerText = data.Soil !== undefined ? data.Soil : "--"; // S ตัวใหญ่
                 
+                const secDiv = document.getElementById("security");
                 if (data.Security !== undefined) {
-                    if (data.Security === 1) {
-                        secDiv.innerText = "⚠️ พบวัตถุ!";
-                        secDiv.className = "value status-warn";
-                        secCard.style.borderBottomColor = "#d93025";
-                    } else {
-                        secDiv.innerText = "✅ ปกติ";
-                        secDiv.className = "value status-ok";
-                        secCard.style.borderBottomColor = "#66bb6a";
-                    }
+                    secDiv.innerText = data.Security === 1 ? "⚠️ พบวัตถุ!" : "✅ ปกติ";
+                    secDiv.className = data.Security === 1 ? "value status-warn" : "value status-ok";
                 }
             }
         });
