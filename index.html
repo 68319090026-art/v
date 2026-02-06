@@ -95,7 +95,7 @@
 
 <div class="dashboard">
     <div class="header">
-        <div><h1>ระบบรักษาความปลอดภัยที่อยู่อาศัย🏡</h1><div style="color:var(--color-env); font-weight:bold;">● Real time security system</div></div>
+        <div><h1>IOT residential security system🏡</h1><div style="color:var(--color-env); font-weight:bold;">● ระบบรักษาความปลอดภัยที่อยู่อาศัย IOT</div></div>
         <div style="text-align:right;">
             <div id="date" style="color: #aaa; font-family: 'Kanit';">--/--/----</div>
             <div id="clock">00:00:00</div>
@@ -131,7 +131,7 @@
 
     <div style="display: flex; gap: 20px; align-items: center; margin: 30px 0;">
         <button id="panic-btn" onmousedown="setPanic(1)" onmouseup="setPanic(0)" ontouchstart="setPanic(1)" ontouchend="setPanic(0)">
-            กดค้าง<br>ขับไล่
+            กดค้าง<br>ขับไล่⛔
         </button>
         <div style="flex-grow:1; background:var(--card); border-radius:30px; padding:25px; display:flex; justify-content:space-around; border:1px solid #333;">
             <div style="text-align:center;"><span id="bulb1" style="font-size:3.5rem; opacity:0.1; transition:0.5s;">💡</span><br><b>เสียง</b></div>
@@ -189,7 +189,7 @@
             const sIcon = document.getElementById("sec-icon");
             const sText = document.getElementById("sec-text");
             sIcon.innerText = sec ? "🚨" : "🛡️";
-            sText.innerText = sec ? "พบวัตถุ!" : "สถานะปกติ";
+            sText.innerText = sec ? "ตรวจพบการบุกรุก!🚷" : "สถานะปกติ✅";
             sText.style.color = sec ? "var(--color-sec)" : "#fff"; 
 
             // อัปเดตอุปกรณ์
