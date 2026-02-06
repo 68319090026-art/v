@@ -3,158 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบรักษาความปลอดภัยที่อยู่อาศัย IOT</title>
+    <title>Advanced IoT Security Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --color-temp: #00f2ff; --color-env: #00ff9d; --color-sec: #ff003c;
-            --bg: #05070a; --card: rgba(13, 17, 23, 0.85);
+            --bg: #020408; --card-bg: rgba(6, 10, 18, 0.7);
         }
 
         body {
             font-family: 'Kanit', sans-serif; background: var(--bg); color: #fff;
-            margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden;
+            margin: 0; min-height: 100vh; overflow-x: hidden;
+            display: flex; justify-content: center;
         }
 
-        /* --- พื้นหลังคลื่นพลังงาน Mega-Motion --- */
-        .energy-wave {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 15% 85%, rgba(0, 242, 255, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 85% 15%, rgba(255, 0, 60, 0.2) 0%, transparent 35%);
-            background-size: 150% 150%; animation: waveMotion 15s ease-in-out infinite alternate;
-            z-index: -2; opacity: 0.6;
+        /* --- 1. Pro Background Animation (Animated Mesh) --- */
+        .bg-animate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: linear-gradient(45deg, #020408, #050b1a, #020408);
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
         }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .energy-orb {
+            position: fixed; width: 500px; height: 500px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.15) 0%, transparent 70%);
+            filter: blur(80px); z-index: -1; animation: orbit 25s linear infinite;
+        }
+        @keyframes orbit { from { transform: rotate(0deg) translateX(200px) rotate(0deg); } to { transform: rotate(360deg) translateX(200px) rotate(-360deg); } }
+
         .grid-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
-            background-size: 45px 45px; z-index: -1; animation: gridMove 20s linear infinite;
+            background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: -1; perspective: 1000px;
         }
-        @keyframes waveMotion { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
-        @keyframes gridMove { from { transform: translateY(0); } to { transform: translateY(45px); } }
 
-        .dashboard { width: 95%; max-width: 1100px; padding: 30px; z-index: 1; }
+        /* --- 2. Dashboard Layout --- */
+        .dashboard { width: 95%; max-width: 1200px; padding: 40px 20px; z-index: 1; }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; border-left: 10px solid #fff; padding-left: 20px; }
-        h1 { font-family: 'Orbitron'; font-size: 2.5rem; margin: 0; color: #fff; text-shadow: 0 0 20px rgba(0,242,255,0.5); }
-        #clock { font-size: 3rem; font-weight: 900; font-family: 'Orbitron'; color: var(--color-temp); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); border-radius: 20px; }
+        h1 { font-family: 'Orbitron'; font-size: clamp(1.5rem, 4vw, 2.5rem); margin: 0; text-transform: uppercase; letter-spacing: 3px; background: linear-gradient(90deg, #fff, var(--color-temp)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #clock { font-family: 'Orbitron'; font-size: clamp(1.5rem, 5vw, 3rem); font-weight: 900; color: var(--color-temp); text-shadow: 0 0 20px var(--color-temp); }
 
-        /* การ์ดลอยแบบ Glassmorphism */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        /* --- 3. Card Pro Effects --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
         .card { 
-            background: var(--card); border-radius: 30px; padding: 35px; text-align: center;
-            position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
-            backdrop-filter: blur(10px);
-            animation: floating 5s ease-in-out infinite;
-            transition: all 0.5s ease;
+            background: var(--card-bg); border-radius: 30px; padding: 40px; text-align: center;
+            border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden;
         }
-        @keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-
-        .card.temp { animation-delay: 0s; border-bottom: 5px solid var(--color-temp); }
-        .card.env { animation-delay: 1s; border-bottom: 5px solid var(--color-env); }
-        .card.sec { animation-delay: 2s; border-bottom: 5px solid var(--color-sec); }
-
-        /* ระบบเตือนภัยแบบ Pulse */
-        .card.sec.alert-active {
-            animation: pulse-red 1.5s infinite;
-            border: 2px solid var(--color-sec);
+        .card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            transform: scale(0); transition: 0.6s; pointer-events: none;
         }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(255, 0, 60, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 0, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 0, 60, 0); }
+        .card:hover { transform: translateY(-15px) scale(1.02); border-color: rgba(255,255,255,0.2); }
+        .card:hover::before { transform: scale(1); }
+
+        /* Scanning Line Effect */
+        .card::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-temp), transparent);
+            animation: scan 4s linear infinite; opacity: 0.3;
         }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        .gauge-wrap { width: 65px; height: 180px; background: #000; border-radius: 35px; margin: 15px auto; position: relative; border: 3px solid #333; overflow: hidden; }
-        #temp-bar { 
-            position: absolute; bottom: 0; width: 100%; height: 0%; 
-            background: linear-gradient(to top, #00ff00, #ffcc00, #ff0000); 
-            transition: 1s cubic-bezier(0.17, 0.88, 0.32, 1.28);
-        }
+        /* Specific Status Styles */
+        .card.sec.alert-active { animation: emergency 0.5s infinite alternate; border: 2px solid var(--color-sec); }
+        @keyframes emergency { 0% { box-shadow: 0 0 10px var(--color-sec); } 100% { box-shadow: 0 0 40px var(--color-sec); } }
 
-        .big-val { font-family: 'Orbitron'; font-size: 4.8rem; font-weight: 900; margin: 10px 0; color: #fff !important; }
-        .sub-val-text { font-size: 3rem; font-weight: bold; color: #fff !important; }
-        #sec-text { font-size: 2rem; font-weight: 900; color: #fff !important; text-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        .big-val { font-family: 'Orbitron'; font-size: 5rem; font-weight: 900; margin: 10px 0; color: #fff; animation: pulseData 2s infinite; }
+        @keyframes pulseData { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
 
+        .gauge-wrap { width: 80px; height: 200px; background: #000; border-radius: 40px; margin: 20px auto; position: relative; border: 4px solid #111; box-shadow: inset 0 0 15px rgba(0,0,0,1); }
+        #temp-bar { position: absolute; bottom: 0; width: 100%; height: 0%; background: linear-gradient(to top, #00ff9d, #ffcc00, #ff003c); transition: 1.5s cubic-bezier(0.17, 0.88, 0.32, 1.28); border-radius: 40px; }
+
+        /* --- 4. Interactive Panic Button --- */
+        .control-panel { display: flex; gap: 20px; align-items: center; margin-top: 40px; flex-wrap: wrap; }
         #panic-btn {
-            width: 160px; height: 160px; border-radius: 50%; background: transparent; 
-            border: 6px solid var(--color-sec); color: var(--color-sec); font-family: 'Kanit';
-            font-size: 1.5rem; font-weight: 900; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 0 20px rgba(255, 0, 60, 0.4);
-            user-select: none;
+            width: 180px; height: 180px; border-radius: 50%; background: #05070a; 
+            border: 4px solid var(--color-sec); color: var(--color-sec); font-family: 'Kanit';
+            font-size: 1.5rem; font-weight: 900; cursor: pointer; position: relative;
+            box-shadow: 0 0 20px rgba(255,0,60,0.2); transition: 0.3s;
         }
-        #panic-btn:active { background: var(--color-sec); color: #fff; transform: scale(0.9); animation: shake 0.2s infinite; }
-        @keyframes shake { 0% { transform: scale(0.9) translate(2px); } 50% { transform: scale(0.9) translate(-2px); } }
+        #panic-btn::before { content: ''; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--color-sec); animation: ringPulse 2s infinite; opacity: 0; }
+        @keyframes ringPulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
+        #panic-btn:active { transform: scale(0.9); background: var(--color-sec); color: #fff; }
+        #panic-btn:active::before { opacity: 1; }
 
-        .log-box { background: var(--card); border-radius: 30px; padding: 30px; margin-top: 30px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        /* --- 5. Log Box --- */
+        .log-box { background: var(--card-bg); border-radius: 30px; padding: 30px; margin-top: 40px; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
         table { width: 100%; border-collapse: collapse; }
-        th { color: var(--color-temp); padding: 15px; border-bottom: 3px solid #333; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #1a1a1a; }
-        
-        .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
+        th { color: var(--color-temp); padding: 15px; text-align: left; font-family: 'Orbitron'; letter-spacing: 1px; }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
     </style>
 </head>
 <body>
 
-<div class="energy-wave"></div>
+<div class="bg-animate"></div>
+<div class="energy-orb"></div>
 <div class="grid-overlay"></div>
 
 <div class="dashboard">
     <div class="header">
-        <div><h1>Home Security Hub🏡</h1><div style="color:var(--color-env); font-weight:bold;">● IoT Monitoring Command Center</div></div>
+        <div>
+            <h1>Security Command Center</h1>
+            <div style="color:var(--color-env); font-weight:bold; letter-spacing: 1px;">● SYSTEM ONLINE: SECURE-LINK v4.0</div>
+        </div>
         <div style="text-align:right;">
-            <div id="date" style="color: #aaa; font-family: 'Kanit';">--/--/----</div>
+            <div id="date" style="color: #666; font-size: 1.1rem; margin-bottom: 5px;">--/--/----</div>
             <div id="clock">00:00:00</div>
         </div>
     </div>
 
     <div class="grid">
         <div class="card temp">
-            <div style="color:var(--color-temp); font-size:1.5rem; font-weight:bold;">อุณหภูมิปัจจุบัน🌤️</div>
+            <div style="color:var(--color-temp); font-size:1.4rem; font-weight:bold; text-transform:uppercase;">Temperature</div>
             <div class="gauge-wrap"><div id="temp-bar"></div></div>
             <div class="big-val" id="t-val">--</div>
-            <small style="color:#777;">Real-time Thermal Sensor</small>
+            <div style="color:#555; font-size:0.8rem; letter-spacing:2px;">CELSIUS UNIT</div>
         </div>
 
         <div class="card env">
-            <div style="color:var(--color-env); font-size:1.5rem; font-weight:bold;">สภาพแวดล้อม🏡</div>
-            <div style="margin: 50px 0;">
-                <div style="color:#777;">ความชื้นในอากาศ🌫️</div>
-                <div class="sub-val-text"><span id="h-val">--</span> %</div>
+            <div style="color:var(--color-env); font-size:1.4rem; font-weight:bold; text-transform:uppercase;">Atmosphere</div>
+            <div style="margin: 60px 0;">
+                <div style="color:#666; text-transform:uppercase; font-size:0.8rem;">Humidity</div>
+                <div class="sub-val-text" style="font-size:3.5rem; font-weight:900; font-family: 'Orbitron';"><span id="h-val">--</span><span style="font-size:1.5rem">%</span></div>
             </div>
-            <div style="padding-top: 30px; border-top: 1px solid #333;">
-                <div style="color:#777;">ความชื้นในดิน 🌱</div>
-                <div class="sub-val-text"><span id="s-val">--</span> %</div>
+            <div style="padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <div style="color:#666; text-transform:uppercase; font-size:0.8rem;">Soil Moisture</div>
+                <div class="sub-val-text" style="font-size:3.5rem; font-weight:900; font-family: 'Orbitron';"><span id="s-val">--</span><span style="font-size:1.5rem">%</span></div>
             </div>
         </div>
 
         <div class="card sec" id="sec-card">
-            <div style="color:var(--color-sec); font-size:1.5rem; font-weight:bold;">ระบบความปลอดภัย⛔</div>
-            <div id="sec-icon" style="font-size: 8rem; margin: 40px 0;">🛡️</div>
-            <div id="sec-text">กำลังเชื่อมต่อ...</div>
+            <div style="color:var(--color-sec); font-size:1.4rem; font-weight:bold; text-transform:uppercase;">Security Status</div>
+            <div id="sec-icon" style="font-size: 8rem; margin: 45px 0; filter: drop-shadow(0 0 20px rgba(255,0,60,0.3));">🛡️</div>
+            <div id="sec-text" style="font-size:1.8rem; font-weight:900;">INITIALIZING...</div>
         </div>
     </div>
 
-    <div style="display: flex; gap: 20px; align-items: center; margin: 30px 0; flex-wrap: wrap;">
+    <div class="control-panel">
         <button id="panic-btn" onmousedown="triggerPanic(1)" onmouseup="triggerPanic(0)" ontouchstart="triggerPanic(1)" ontouchend="triggerPanic(0)">
-            กดค้าง<br>ขับไล่⛔
+            SYSTEM<br>PANIC⛔
         </button>
-        <div style="flex-grow:1; background:var(--card); border-radius:30px; padding:25px; display:flex; justify-content:space-around; border:1px solid #333; backdrop-filter: blur(10px);">
-            <div style="text-align:center;"><span id="bulb1" style="font-size:3.5rem; opacity:0.1; transition:0.5s;">🚨</span><br><b>ไซเรน</b></div>
-            <div style="text-align:center;"><span id="bulb2" style="font-size:3.5rem; opacity:0.1; transition:0.5s;">🔥</span><br><b>ความร้อน</b></div>
-            <div style="text-align:center;"><span id="spk-icon" style="font-size:3.5rem; opacity:0.1; transition:0.5s;">🔊</span><br><b>ลำโพง</b></div>
+        <div style="flex-grow:1; background:var(--card-bg); border-radius:30px; padding:35px; display:flex; justify-content:space-around; border:1px solid rgba(255,255,255,0.05); backdrop-filter: blur(20px);">
+            <div style="text-align:center;"><span id="bulb1" style="font-size:4rem; filter:grayscale(1); transition:0.5s; opacity:0.2;">🚨</span><br><b style="font-size:0.8rem; color:#666;">SIREN</b></div>
+            <div style="text-align:center;"><span id="bulb2" style="font-size:4rem; filter:grayscale(1); transition:0.5s; opacity:0.2;">🔥</span><br><b style="font-size:0.8rem; color:#666;">HEAT</b></div>
+            <div style="text-align:center;"><span id="spk-icon" style="font-size:4rem; filter:grayscale(1); transition:0.5s; opacity:0.2;">🔊</span><br><b style="font-size:0.8rem; color:#666;">VOICE</b></div>
         </div>
     </div>
 
     <div class="log-box">
-        <h2 style="color:var(--color-temp); margin-top:0;">📊 บันทึกประวัติระบบ (Log)</h2>
-        <div style="max-height: 250px; overflow-y: auto;">
+        <h2 style="color:var(--color-temp); font-family:'Orbitron'; font-size:1.2rem; margin-bottom:20px;">▶ SYSTEM LOG_HISTORY</h2>
+        <div style="max-height: 300px; overflow-y: auto;">
             <table>
-                <thead><tr><th>วัน/เดือน/ปี</th><th>เวลา</th><th>เหตุการณ์</th><th>สถานะ</th></tr></thead>
+                <thead><tr><th>TIMESTAMP</th><th>EVENT DESCRIPTION</th><th>STATUS</th></tr></thead>
                 <tbody id="log-body"></tbody>
             </table>
         </div>
@@ -162,98 +170,84 @@
 </div>
 
 <script>
-    // 1. Firebase Config
+    // Firebase Setup
     const firebaseConfig = { databaseURL: "https://viewvi-3e5ef-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. Real-time Clock
+    // Clock
     setInterval(() => {
         const now = new Date();
         document.getElementById('date').innerText = now.toLocaleDateString('th-TH', { day:'2-digit', month:'long', year:'numeric' });
         document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
     }, 1000);
 
-    // 3. Haptic Feedback & Panic Logic
+    // Panic Function with Vibration
     function triggerPanic(v) { 
-        if(v && navigator.vibrate) navigator.vibrate(200); // สั่นมือถือเมื่อกด
+        if(v && navigator.vibrate) navigator.vibrate([100, 50, 100]);
         db.ref("/").update({ panicMode: v }); 
-        if(v) addLog("คำสั่งผู้ใช้", "🚨 เปิดไซเรนฉุกเฉิน", true); 
+        if(v) addLog("MANUAL_OVERRIDE", "USER INITIATED PANIC MODE", true); 
     }
 
-    // 4. Logging System
-    function addLog(type, msg, alert) {
+    function addLog(type, msg, isAlert) {
         const tbody = document.getElementById("log-body");
         const row = document.createElement("tr");
         const now = new Date();
+        row.style.color = isAlert ? var(--color-sec) : "#fff";
         row.innerHTML = `
-            <td>${now.toLocaleDateString('th-TH')}</td>
             <td>${now.toLocaleTimeString('th-TH')}</td>
-            <td><b>${type}</b>: ${msg}</td>
-            <td><span class="status-pill" style="background:${alert?'#ff003c':'#00ff9d'}; color:#000">${alert?'WARNING':'NORMAL'}</span></td>
+            <td>[${type}] ${msg}</td>
+            <td style="color:${isAlert ? 'var(--color-sec)' : 'var(--color-env)'}">${isAlert ? '● CRITICAL' : '● NORMAL'}</td>
         `;
         tbody.prepend(row);
-        if(tbody.rows.length > 50) tbody.deleteRow(-1); // จำกัด Log ไม่เกิน 50 แถว
     }
 
-    // 5. IoT Data Sync
     let lastSec = 0; 
-    let lastTAlert = false;
+    let lastT = false;
 
     db.ref("/").on("value", (snap) => {
         const data = snap.val();
         if (!data) return;
 
-        const temp = data.temperature || 0;
-        const isSecurityAlert = data.Security == 1;
+        const t = data.temperature || 0;
+        const sec = data.Security == 1;
 
-        // อัปเดตอุณหภูมิ & Bar
-        document.getElementById("t-val").innerText = temp;
-        document.getElementById("temp-bar").style.height = Math.min(temp * 2, 100) + "%";
-        
-        // อัปเดตความชื้น
+        // UI Updates
+        document.getElementById("t-val").innerText = t;
+        document.getElementById("temp-bar").style.height = Math.min(t * 2, 100) + "%";
         document.getElementById("h-val").innerText = data.Humidity || "--";
         document.getElementById("s-val").innerText = data.Soil || "--";
 
-        // ระบบความปลอดภัย UI
         const sCard = document.getElementById("sec-card");
         const sIcon = document.getElementById("sec-icon");
         const sText = document.getElementById("sec-text");
 
-        if (isSecurityAlert) {
+        if(sec) {
             sCard.classList.add("alert-active");
             sIcon.innerText = "🚨";
-            sText.innerText = "พบการบุกรุก! 🚷";
+            sText.innerText = "INTRUDER DETECTED";
             sText.style.color = "var(--color-sec)";
+            document.getElementById("bulb1").style.filter = "grayscale(0) drop-shadow(0 0 15px red)";
             document.getElementById("bulb1").style.opacity = "1";
         } else {
             sCard.classList.remove("alert-active");
             sIcon.innerText = "🛡️";
-            sText.innerText = "สถานะปกติ ✅";
-            sText.style.color = "#fff";
-            document.getElementById("bulb1").style.opacity = "0.1";
+            sText.innerText = "SYSTEM SECURED";
+            sText.style.color = "var(--color-env)";
+            document.getElementById("bulb1").style.filter = "grayscale(1)";
+            document.getElementById("bulb1").style.opacity = "0.2";
         }
 
-        // ตัวบ่งชี้ความร้อน (Icon Heat)
-        document.getElementById("bulb2").style.opacity = (temp > 38) ? "1" : "0.1";
-        
-        // ตัวบ่งชี้เสียง (Icon Speaker)
-        document.getElementById("spk-icon").style.opacity = (isSecurityAlert || data.panicMode) ? "1" : "0.1";
+        document.getElementById("bulb2").style.filter = t > 38 ? "grayscale(0) drop-shadow(0 0 15px orange)" : "grayscale(1)";
+        document.getElementById("bulb2").style.opacity = t > 38 ? "1" : "0.2";
+        document.getElementById("spk-icon").style.filter = (sec || data.panicMode) ? "grayscale(0) drop-shadow(0 0 15px cyan)" : "grayscale(1)";
+        document.getElementById("spk-icon").style.opacity = (sec || data.panicMode) ? "1" : "0.2";
 
-        // Log Logic (บันทึกเมื่อสถานะเปลี่ยนเท่านั้น)
-        if(isSecurityAlert && !lastSec) { 
-            addLog("Security", "ตรวจพบความเคลื่อนไหวผิดปกติ", true); 
-            lastSec = 1; 
-        } else if(!isSecurityAlert) {
-            lastSec = 0;
-        }
+        if(sec && !lastSec) { addLog("SECURITY", "MOTION SENSOR BREACHED", true); lastSec = 1; } 
+        else if(!sec) lastSec = 0;
 
-        if(temp > 38 && !lastTAlert) { 
-            addLog("Temperature", `อุณหภูมิวิกฤต: ${temp}°C`, true); 
-            lastTAlert = true; 
-        } else if(temp <= 38) {
-            lastTAlert = false;
-        }
+        if(t > 38 && !lastT) { addLog("THERMAL", `HIGH TEMP DETECTED: ${t}°C`, true); lastT = true; } 
+        else if(t <= 38) lastT = false;
     });
 </script>
 </body>
